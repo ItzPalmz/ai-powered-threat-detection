@@ -1,0 +1,200 @@
+<!-- Local rules -->
+
+<!-- Modify it at your will. -->
+<!-- Copyright (C) 2015, Wazuh Inc. -->
+
+<group name="drop_net_stat">
+ <rule id="300002" level="0">
+  <if_sid>533</if_sid>
+  <description>Suppress netstat listening port alerts (Rule 533)</description>
+  <!-- Optional: Target specific agents -->
+  <!-- <location>agent_name</location> -->
+ </rule>
+</group>
+
+
+<group name="morpheus,ai_threat_detection">
+
+  <!-- Base rule for all Morpheus alerts -->
+  <rule id="100100" level="0">
+    <decoded_as>morpheus-ai</decoded_as>
+    <description>Morpheus AI Threat Detection System</description>
+  </rule>
+
+  <!-- Low confidence threats (60-75%) -->
+  <rule id="100101" level="5">
+    <if_sid>100100</if_sid>
+    <match>Morpheus-AI-Threat:</match>
+    <field name="confidence">\.6|\.7</field>
+    <description>Morpheus AI: Low confidence threat detected ($(threat_type))</description>
+    <group>morpheus_threat,low_confidence</group>
+  </rule>
+
+  <!-- Medium confidence threats (75-90%) -->
+  <rule id="100102" level="8">
+    <if_sid>100100</if_sid>
+    <match>Morpheus-AI-Threat:</match>
+    <field name="confidence">\.7|\.8|\.90|\.91|\.92|\.93|\.94</field>
+    <description>Morpheus AI: Medium confidence threat detected ($(threat_type))</description>
+    <group>morpheus_threat,medium_confidence</group>
+  </rule>
+
+  <!-- High confidence threats (>90%) -->
+  <rule id="100103" level="12">
+    <if_sid>100100</if_sid>
+    <match>Morpheus-AI-Threat:</match>
+    <field name="confidence">\.95|\.96|\.97|\.98|\.99|1\.0</field>
+    <description>Morpheus AI: High confidence threat detected ($(threat_type))</description>
+    <group>morpheus_threat,high_confidence</group>
+  </rule>
+
+  <!-- Specific threat types with higher severity -->
+  
+  <!-- SQL Injection -->
+  <rule id="100110" level="10">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">sql_injection</field>
+    <description>Morpheus AI: SQL Injection attack detected from $(srcip)</description>
+    <group>morpheus_threat,sql_injection,attack</group>
+  </rule>
+
+  <!-- XSS Attack -->
+  <rule id="100111" level="10">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">xss_attack</field>
+    <description>Morpheus AI: XSS attack detected from $(srcip)</description>
+    <group>morpheus_threat,xss_attack,attack</group>
+  </rule>
+
+  <!-- Command Injection -->
+  <rule id="100112" level="12">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">command_injection</field>
+    <description>Morpheus AI: Command injection attack detected from $(srcip)</description>
+    <group>morpheus_threat,command_injection,attack</group>
+  </rule>
+
+  <!-- Brute Force -->
+  <rule id="100113" level="9">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">brute_force</field>
+    <description>Morpheus AI: Brute force attack detected from $(srcip)</description>
+    <group>morpheus_threat,brute_force,attack</group>
+  </rule>
+
+  <!-- Malware -->
+  <rule id="100114" level="13">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">malware</field>
+    <description>Morpheus AI: Malware activity detected from $(srcip)</description>
+    <group>morpheus_threat,malware,attack</group>
+  </rule>
+
+  <!-- Port Scan -->
+  <rule id="100115" level="7">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">port_scan</field>
+    <description>Morpheus AI: Port scanning detected from $(srcip)</description>
+    <group>morpheus_threat,port_scan,recon</group>
+  </rule>
+
+  <!-- Web Attack -->
+  <rule id="100116" level="10">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">web_attack</field>
+    <description>Morpheus AI: Web attack detected from $(srcip)</description>
+    <group>morpheus_threat,web_attack,attack</group>
+  </rule>
+
+  <!-- Suspicious Activity (general) -->
+  <rule id="100117" level="6">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="threat_type">suspicious_activity</field>
+    <description>Morpheus AI: Suspicious activity detected from $(srcip)</description>
+    <group>morpheus_threat,suspicious</group>
+  </rule>
+  
+  <!-- High anomaly score (>80%) with any threat type -->
+  <rule id="100120" level="11">
+    <if_sid>100101,100102,100103</if_sid>
+    <field name="anomaly_score">\.8|\.9|1\.0</field>
+    <description>Morpheus AI: High anomaly score detected ($(threat_type)) from $(srcip)</description>
+    <group>morpheus_threat,high_anomaly</group>
+  </rule>
+
+</group>
+
+<group name="fortigate,syslog">
+  <!-- Base rule: Match any accepted traffic from FortiGate -->
+  <rule id="222223" level="3">
+    <decoded_as>fortigate-traffic</decoded_as>
+    <match>action="accept"</match>
+    <description>FortiGate: Traffic accepted from $(srcip)</description>
+  </rule>
+
+  <!-- Frequency rule: Block if IP appears 2 times in 120 seconds -->
+  <rule id="222224" level="10" frequency="4" timeframe="120">
+    <if_matched_sid>222221</if_matched_sid>
+    <same_source_ip />
+    <description>FortiGate: Multiple connections detected from $(srcip). Blocking IP.</description>
+  </rule>
+</group>
+
+<group name="fortigate_brute">
+  <!-- Base rule: Fires on every SSH session the FortiGate sees -->
+  <rule id="222225" level="3">
+    <decoded_as>fortigate-custom</decoded_as>
+    <match>app="SSH"</match>
+    <description>FortiGate: SSH session detected from $(srcip)</description>
+  </rule>
+
+  <!-- Brute Force: Fires after 3 sessions from same IP in 2 mins -->
+  <rule id="222226" level="10" frequency="3" timeframe="120">
+    <if_matched_sid>222221</if_matched_sid>
+    <same_source_ip />
+    <description>FortiGate: Brute Force detected from $(srcip). Blocking IP.</description>
+  </rule>
+</group>
+
+<group name="fortigate_fix">
+  <rule id="222227" level="3">
+    <decoded_as>fortigate-greedy</decoded_as>
+    <description>FortiGate log received.</description>
+  </rule>
+
+  <rule id="222228" level="10" frequency="3" timeframe="120">
+    <if_matched_sid>222221</if_matched_sid>
+    <same_source_ip />
+    <description>FortiGate Brute Force: 3 attempts detected.</description>
+  </rule>
+</group>
+
+<group name="pam_brute">
+  <rule id="444444" level="15" frequency="3" timeframe="120">
+    <if_matched_sid>5503</if_matched_sid>
+    <same_source_ip />
+    <description>Brute Force Detected (PAM): 3 attempts from $(srcip)</description>
+  </rule>
+</group>
+
+<group name="morpheus,llm_threats">
+  
+  <!-- Rule for LLM-analyzed threats (suspicious) -->
+  <rule id="100200" level="12">
+    <field name="llm_status">analyzed</field>
+    <field name="llm_is_suspicious">1</field>
+    <field name="llm_response">\.+</field>
+    <description>🚨 LLM-CONFIRMED THREAT: $(llm_response)</description>
+    <group>morpheus_llm,threat,suspicious</group>
+  </rule>
+
+  <!-- Rule for LLM-analyzed events (informational, not suspicious) -->
+  <rule id="100201" level="8">
+    <field name="llm_status">analyzed</field>
+    <field name="llm_is_suspicious">0</field>
+    <field name="llm_response">\.+</field>
+    <description>ℹ️ LLM Analysis (Requires Investigation): $(llm_response)</description>
+    <group>morpheus_llm,info</group>
+  </rule>
+
+</group>

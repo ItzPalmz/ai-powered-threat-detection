@@ -1,0 +1,43 @@
+{
+  "model_name": "distilbert-base-uncased",
+  "num_labels": 5,
+  "label_list": [
+    "normal",
+    "DoS",
+    "PortScan",
+    "Malware",
+    "BruteForce"
+  ],
+  "label2id": {
+    "normal": 0,
+    "DoS": 1,
+    "PortScan": 2,
+    "Malware": 3,
+    "BruteForce": 4
+  },
+  "id2label": {
+    "0": "normal",
+    "1": "DoS",
+    "2": "PortScan",
+    "3": "Malware",
+    "4": "BruteForce"
+  },
+  "training_samples": 3416559,
+  "validation_samples": 854140,
+  "epochs": 3,
+  "batch_size": 32,
+  "learning_rate": 2e-05,
+  "max_length": 256,
+  "training_time": "3:11:04.789923",
+  "eval_accuracy": 0.9976526096424474,
+  "eval_f1": 0.997646696931718,
+  "trained_at": "2026-02-06T12:36:04.739918",
+  "gpu_count": 2,
+  "label_distribution": {
+    "normal": 3870699,
+    "Malware": 100000,
+    "DoS": 100000,
+    "BruteForce": 100000,
+    "PortScan": 100000
+  }
+}
