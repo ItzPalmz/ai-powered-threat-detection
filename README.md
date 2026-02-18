@@ -190,7 +190,7 @@ MULTI_LOG_WINDOW = 120              # 2 minutes for multi-log attacks
 
 ## Performance
 
-- **Throughput**: 10,000+ logs/second
+- **Throughput**: 150-300+ logs/second
 - **Latency**: <2 seconds (Firewall → Wazuh)
 - **GPU Utilization**: ~60% (Morpheus + LLM)
 - **LLM Analysis Rate**: 1-3% of logs (smart filtering)

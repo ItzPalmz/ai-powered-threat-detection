@@ -335,7 +335,7 @@ sudo journalctl -u morpheus-llm-enricher | grep "LLM ANALYZED" | tail -100
   "llm_status": "analyzed",
   "llm_is_suspicious": 1,
   "llm_confidence": 85,
-  "llm_response": "Multiple connection attempts to different ports detected from this source IP. Pattern consistent with port scanning activity. Recommend blocking source.",
+  "llm_response": "Large amount of data transfer between internal and external IP addresses over SSH protocol which could indicate a potential brute force attack or data exfiltration attempt.",
   "llm_trigger": "dfp_anomaly",
   "llm_context": "multi_log_pattern",
   "enrichment_timestamp": "2026-02-16T10:30:02.123+07:00"

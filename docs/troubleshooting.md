@@ -768,26 +768,6 @@ echo "Indexer → Wazuh: $([ $COUNT3 -gt 0 ] && echo '✅' || echo '❌')"
 
 ---
 
-## Getting Help
-
-If issues persist:
-
-1. **Collect logs:**
-```bash
-# Create support bundle
-mkdir -p ~/morpheus-debug
-sudo journalctl -u morpheus-pipeline -n 500 > ~/morpheus-debug/morpheus.log
-sudo journalctl -u morpheus-llm-enricher -n 500 > ~/morpheus-debug/llm.log
-sudo journalctl -u logstash -n 500 > ~/morpheus-debug/logstash.log
-docker logs kafka > ~/morpheus-debug/kafka.log 2>&1
-
-tar czf morpheus-debug.tar.gz ~/morpheus-debug/
-```
-
-2. **Check GitHub Issues**
-3. **Discord Community**
-4. **Wazuh Forums**
-
 ## References
 
 - [Kafka Troubleshooting](https://kafka.apache.org/documentation/#troubleshooting)
