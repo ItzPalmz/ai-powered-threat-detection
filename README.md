@@ -125,7 +125,11 @@ sudo systemctl start morpheus-llm-enricher
 
 See [LLM Enrichment Setup](docs/llm-enrichment.md)
 
-### 6. Configure Wazuh Integration
+### 6. Install Wazuh 
+
+See [Wazuh Installation Guide](https://documentation.wazuh.com/current/installation-guide/index.html)
+
+### 7. Configure Wazuh Integration
 ```bash
 # Copy rules
 sudo cp configs/wazuh/local_rules.xml /var/ossec/etc/rules/
