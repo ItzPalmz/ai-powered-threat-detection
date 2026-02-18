@@ -690,29 +690,29 @@ grep "eligible entities" morpheus_pipeline.log | tail -1
 
 ### Daily Monitoring Checklist
 
-- [ ] Check consumer lag (`< 100`)
-- [ ] Verify GPU temperature (`< 80°C`)
-- [ ] Review threat detection rate (`0.5-5%`)
-- [ ] Check peer group count (`> 0`)
-- [ ] Verify messages flowing in all topics
-- [ ] Review error logs
+-  Check consumer lag (`< 100`)
+-  Verify GPU temperature (`< 80°C`)
+-  Review threat detection rate (`0.5-5%`)
+-  Check peer group count (`> 0`)
+-  Verify messages flowing in all topics
+-  Review error logs
 
 ### Weekly Maintenance
 
-- [ ] Analyze DFP model performance trends
-- [ ] Review peer group quality metrics
-- [ ] Check disk space (Kafka logs, pipeline logs)
-- [ ] Update detection thresholds if needed
-- [ ] Review false positive/negative rates
-- [ ] Backup Kafka topic configurations
+-  Analyze DFP model performance trends
+-  Review peer group quality metrics
+-  Check disk space (Kafka logs, pipeline logs)
+-  Update detection thresholds if needed
+-  Review false positive/negative rates
+-  Backup Kafka topic configurations
 
 ### Monthly Review
 
-- [ ] Evaluate overall system performance
-- [ ] Optimize consumer group settings
-- [ ] Review and update alerting rules
-- [ ] Plan for capacity scaling
-- [ ] Update documentation
-- [ ] Review security incidents detected
+-  Evaluate overall system performance
+-  Optimize consumer group settings
+-  Review and update alerting rules
+-  Plan for capacity scaling
+-  Update documentation
+-  Review security incidents detected
 
 ---
