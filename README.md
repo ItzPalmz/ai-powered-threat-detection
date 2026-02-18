@@ -35,7 +35,7 @@ Wazuh Indexer (OpenSearch)
 Wazuh Dashboard + Discord Alerts
 ```
 
-## ⚡ Key Features
+## Key Features
 
 ### 1. Multi-Stage Threat Detection
 - **Regex**: Fast pattern matching for known signatures (SQL injection, XSS, command injection)
@@ -280,7 +280,7 @@ Contributions welcome! Please:
 
 MIT License - See [LICENSE](LICENSE)
 
-## 👥 Authors
+## Authors
 
 - Teetuch Thawinphrai - Initial work
 
@@ -289,13 +289,6 @@ MIT License - See [LICENSE](LICENSE)
 - NVIDIA Morpheus for GPU-accelerated threat detection
 - Mistral AI for the LLM model
 - Wazuh for SIEM integration
-- Anthropic Claude for development assistance
-
-## 📞 Support
-
-- GitHub Issues: [Report bugs or request features]
-- Documentation: [Full documentation](docs/)
-- Discord: [Join our community]
 
 ---
 
