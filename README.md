@@ -145,9 +145,9 @@ See [Wazuh Integration Guide](docs/wazuh-integration.md)
 
 | Topic | Partitions | Purpose |
 |-------|-----------|---------|
-| `sys_logs` | 20 | Raw FortiGate logs from Logstash |
-| `morpheus-final-realtime-dfp` | 10 | Morpheus pipeline output with DFP scores |
-| `morpheus-llm-enrichment` | 5 | LLM-enriched threat analysis |
+| `sys_logs` | 3 | Raw FortiGate logs from Logstash |
+| `morpheus-final-realtime-dfp` | 1 | Morpheus pipeline output with DFP scores |
+| `morpheus-llm-enrichment` | 1 | LLM-enriched threat analysis |
 
 ### Detection Thresholds
 ```python
