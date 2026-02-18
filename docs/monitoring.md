@@ -8,15 +8,15 @@ This guide covers monitoring, observability, and operational best practices for 
 
 ## Table of Contents
 
-1. [Key Metrics to Monitor](#key-metrics-to-monitor)
-2. [Pipeline Health Checks](#pipeline-health-checks)
-3. [Performance Monitoring](#performance-monitoring)
-4. [Kafka Consumer Monitoring](#kafka-consumer-monitoring)
-5. [DFP Model Monitoring](#dfp-model-monitoring)
-6. [Peer Group Health](#peer-group-health)
-7. [Alerting Rules](#alerting-rules)
-8. [Troubleshooting Guide](#troubleshooting-guide)
-9. [Dashboard Examples](#dashboard-examples)
+- [Key Metrics to Monitor](#key-metrics-to-monitor)
+- [Pipeline Health Checks](#pipeline-health-checks)
+- [Performance Monitoring](#performance-monitoring)
+- [Kafka Consumer Monitoring](#kafka-consumer-monitoring)
+- [DFP Model Monitoring](#dfp-model-monitoring)
+- [Peer Group Health](#peer-group-health)
+- [Alerting Rules](#alerting-rules)
+- [Troubleshooting Guide](#troubleshooting-guide)
+- [Dashboard Examples](#dashboard-examples)
 
 ---
 
