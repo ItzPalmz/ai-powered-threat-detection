@@ -95,7 +95,11 @@ docker-compose up -d
 
 See [Kafka Setup Guide](docs/kafka-setup.md)
 
-### 3. Configure Logstash
+### 3. Install Logstash
+
+See [Logstash Installation Guide](https://www.elastic.co/docs/reference/logstash/installing-logstash)
+
+### 4. Configure Logstash
 ```bash
 sudo cp configs/logstash/syslog-to-kafka.conf /etc/logstash/conf.d/
 sudo systemctl restart logstash
@@ -103,7 +107,7 @@ sudo systemctl restart logstash
 
 See [Logstash Configuration](docs/logstash-setup.md)
 
-### 4. Deploy Morpheus Pipeline
+### 5. Deploy Morpheus Pipeline
 ```bash
 conda create -n morpheus python=3.10
 conda activate morpheus
@@ -115,7 +119,7 @@ python scripts/morpheus/morpheus_pipeline.py
 
 See [Morpheus Pipeline Guide](docs/morpheus-setup.md)
 
-### 5. Start LLM Enrichment
+### 6. Start LLM Enrichment
 ```bash
 # Setup service
 sudo cp deployment/systemd/morpheus-llm-enricher.service /etc/systemd/system/
@@ -125,11 +129,11 @@ sudo systemctl start morpheus-llm-enricher
 
 See [LLM Enrichment Setup](docs/llm-enrichment.md)
 
-### 6. Install Wazuh 
+### 7. Install Wazuh 
 
 See [Wazuh Installation Guide](https://documentation.wazuh.com/current/installation-guide/index.html)
 
-### 7. Configure Wazuh Integration
+### 8. Configure Wazuh Integration
 ```bash
 # Copy rules
 sudo cp configs/wazuh/local_rules.xml /var/ossec/etc/rules/
