@@ -300,4 +300,4 @@ MIT License - See [LICENSE](LICENSE)
 
 ---
 
-**Built with ❤️ **
+**Built with ❤️**
