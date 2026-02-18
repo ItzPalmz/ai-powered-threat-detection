@@ -300,4 +300,4 @@ MIT License - See [LICENSE](LICENSE)
 
 ---
 
-**Built with ❤️ for cybersecurity professionals**
+**Built with ❤️ **
