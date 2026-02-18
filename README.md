@@ -202,6 +202,7 @@ MULTI_LOG_WINDOW = 120              # 2 minutes for multi-log attacks
 ```bash
 nmap -A -T4 192.168.19.80
 ```
+See [Nmap Installation Guide](https://nmap.org/book/install.html)
 
 ### Simulate Brute Force
 ```bash
