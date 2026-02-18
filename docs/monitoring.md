@@ -716,5 +716,3 @@ grep "eligible entities" morpheus_pipeline.log | tail -1
 - [ ] Review security incidents detected
 
 ---
-
-For questions or issues, refer to the troubleshooting section or check the project repository.
