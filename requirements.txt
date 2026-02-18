@@ -9,7 +9,6 @@ blinker==1.7.0
 bloom==0.13.0
 boto3==1.34.46
 botocore==1.34.46
-Brlapi==0.8.5
 Brotli==1.1.0
 cachetools==5.3.0
 catkin-pkg==1.0.0
