@@ -105,9 +105,9 @@ def test_anomaly_scoring_logic():
         )
     
     # Test case 1: High combined
-    ind, peer = 0.6, 0.8
+    ind, peer = 0.7, 0.8
     combined = compute_combined_score(ind, peer)
-    assert combined > 0.7
+    assert combined > 0.7  # 0.6*0.7 + 0.4*0.8 = 0.42 + 0.32 = 0.74
     assert is_anomaly(ind, peer, combined) == True
     
     # Test case 2: High individual + moderate peer
