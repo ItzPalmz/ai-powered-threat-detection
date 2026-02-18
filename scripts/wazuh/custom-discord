@@ -9,7 +9,7 @@ from datetime import datetime
 # ========================
 OPENSEARCH_HOST = "https://localhost:9200"
 OPENSEARCH_USER = "admin"
-OPENSEARCH_PASS = "HsU4+m88zRiiJ*yI7gbWlBaloHmycLDC"
+OPENSEARCH_PASS = "password"
 INDEX_NAME = "morpheus-final-realtime-dfp-2"
 
 DISCORD_WEBHOOK = "YOUR_DISCORD_WEBHOOK_URL"
