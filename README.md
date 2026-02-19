@@ -87,19 +87,32 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 bash Miniconda3-latest-Linux-x86_64.sh
 ```
 
-### 2. Deploy Kafka
+### 2. Get your NVIDIA NGC API Key
 ```bash
-cd deployment/kafka
+Go to: https://ngc.nvidia.com
+Sign in with your NVIDIA account.
+Click your profile -> Setup -> Generate API Key
+Copy the key (you only see it once).
+```
+
+### 3. Login Docker to NGC
+```bash
+docker login nvcr.io
+Username: $oauthtoken
+Password: <PASTE YOUR API KEY>
+```
+
+### 4. Deploy Docker containers
+```bash
+cd deployment/docker
 docker-compose up -d
 ```
 
-See [Kafka Setup Guide](docs/kafka-setup.md)
-
-### 3. Install Logstash
+### 5. Install Logstash
 
 See [Logstash Installation Guide](https://www.elastic.co/docs/reference/logstash/installing-logstash)
 
-### 4. Configure Logstash
+### 6. Configure Logstash
 ```bash
 sudo cp configs/logstash/syslog-to-kafka.conf /etc/logstash/conf.d/
 sudo systemctl restart logstash
@@ -107,7 +120,7 @@ sudo systemctl restart logstash
 
 See [Logstash Configuration](docs/logstash-setup.md)
 
-### 5. Deploy Morpheus Pipeline
+### 7. Deploy Morpheus Pipeline
 ```bash
 conda create -n morpheus python=3.10
 conda activate morpheus
@@ -119,17 +132,7 @@ python scripts/morpheus/morpheus_pipeline.py
 
 See [Morpheus Pipeline Guide](docs/morpheus-setup.md)
 
-### 6. Start LLM Enrichment
-```bash
-# Setup service
-sudo cp deployment/systemd/morpheus-llm-enricher.service /etc/systemd/system/
-sudo systemctl enable morpheus-llm-enricher
-sudo systemctl start morpheus-llm-enricher
-```
-
-See [LLM Enrichment Setup](docs/llm-enrichment.md)
-
-### 7. Install Wazuh 
+### 8. Install Wazuh 
 
 See [Wazuh Installation Guide](https://documentation.wazuh.com/current/installation-guide/index.html)
 
