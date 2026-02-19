@@ -21,14 +21,14 @@ logging.basicConfig(
 # CONFIGURATION
 # ============================================================================
 KAFKA_BROKER = "192.168.19.80:9092"
-KAFKA_TOPIC = "morpheus-llm-enrichment"  # ← LLM enrichment topic
+KAFKA_TOPIC = "morpheus-llm-enrichment"  
 GROUP_ID = "morpheus-llm-wazuh-indexer"
 
 INDEXER_HOST = "192.168.19.80"
 INDEXER_PORT = 9200
 INDEXER_USER = "admin"
 INDEXER_PASS = "HsU4+m88zRiiJ*yI7gbWlBaloHmycLDC"
-INDEX_NAME = "morpheus-llm-alerts"  # ← New index for LLM alerts
+INDEX_NAME = "morpheus-llm-alerts"  
 
 # ============================================================================
 # TUNING PARAMETERS 
@@ -113,7 +113,7 @@ def flush_bulk(actions):
             logging.error(f"Bulk error: {errors[0]}")
         
         logging.info(
-            f"✅ Indexed {success} docs in {elapsed:.3f}s | "
+            f"Indexed {success} docs in {elapsed:.3f}s | "
             f"Total: {total_indexed} | LLM Analyzed: {llm_analyzed} | Suspicious: {llm_suspicious}"
         )
         last_flush_time = time.time()
@@ -134,7 +134,7 @@ def should_flush(buffer_size):
 # MAIN CONSUMER LOOP
 # ============================================================================
 logging.info("="*70)
-logging.info(f"🚀 LLM Enrichment → Wazuh Indexer Started")
+logging.info(f"LLM Enrichment -> Wazuh Indexer Started")
 logging.info(f"   Topic: {KAFKA_TOPIC}")
 logging.info(f"   Index: {INDEX_NAME}")
 logging.info(f"   Max Latency: {MAX_FLUSH_INTERVAL}s")
@@ -195,5 +195,5 @@ finally:
         logging.info(f"Final flush of {len(buffer)} documents...")
         flush_bulk(buffer)
     consumer.close()
-    logging.info(f"✅ Process ended. Success: {total_indexed}, Errors: {total_errors}")
+    logging.info(f"Process ended. Success: {total_indexed}, Errors: {total_errors}")
     sys.exit(0)

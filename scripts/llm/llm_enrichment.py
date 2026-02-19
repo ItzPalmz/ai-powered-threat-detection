@@ -18,9 +18,8 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# ============================================================================
 # CONFIGURATION
-# ============================================================================
+
 KAFKA_BROKER = "192.168.19.80:9092"
 INPUT_TOPIC = "morpheus-final-realtime-dfp"
 OUTPUT_TOPIC = "morpheus-llm-enrichment"
@@ -33,9 +32,8 @@ BERT_CONFIDENCE_THRESHOLD = 0.40
 # OPTIMIZATION: Entity Cooldown
 COOLDOWN_SECONDS = 600  # 10 Minutes
 
-# ============================================================================
 # LOAD MISTRAL MODEL (4-bit Quantized)
-# ============================================================================
+
 logging.info("Loading Mistral-7B-Instruct-v0.2 with 4-bit quantization...")
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -61,14 +59,12 @@ llm_model = AutoModelForCausalLM.from_pretrained(
 llm_model.eval()
 logging.info("Mistral-7B loaded with INT4 quantization on GPU")
 
-# ============================================================================
 # STATE MANAGEMENT (IN-MEMORY COOLDOWN)
-# ============================================================================
+
 entity_cooldown_cache = {} 
 
-# ============================================================================
 # KAFKA
-# ============================================================================
+
 consumer = Consumer({
     "bootstrap.servers": KAFKA_BROKER,
     "group.id": GROUP_ID,
@@ -84,9 +80,8 @@ logging.info(f"Producing to: {OUTPUT_TOPIC}")
 logging.info(f"OPTIMIZATION: Entity Cooldown = {COOLDOWN_SECONDS}s")
 logging.info(f"THRESHOLDS: DFP > {DFP_ANOMALY_THRESHOLD} OR BERT < {BERT_CONFIDENCE_THRESHOLD}")
 
-# ============================================================================
 # LLM ANALYSIS FUNCTION
-# ============================================================================
+
 def llm_analyze(log_data, is_dfp_anomaly=False, dfp_score=0.0):
     """Analyze log with Mistral LLM"""
     try:
@@ -163,7 +158,7 @@ LOG DATA:
         reason = "Unable to parse response"
         
         try:
-            # Extract JSON from response (handle markdown code blocks)
+            # Extract JSON from response 
             json_match = re.search(r'\{[^}]*"is_threat"[^}]*\}', response, re.DOTALL)
             if json_match:
                 parsed = json.loads(json_match.group(0))
@@ -200,9 +195,8 @@ LOG DATA:
             'llm_trigger': 'error'
         }
 
-# ============================================================================
-# MAIN LOOP
-# ============================================================================
+# MAIN 
+
 stats = {
     'total_consumed': 0,
     'llm_analyzed': 0,
@@ -245,9 +239,8 @@ try:
             'enrichment_timestamp': datetime.now(timezone(timedelta(hours=7))).isoformat(),
         }
 
-        # ============================================================
         # CHECK 1: THRESHOLD FILTERING
-        # ============================================================
+        
         meets_threshold = (
             (dfp_is_anomaly == 1 and dfp_score > DFP_ANOMALY_THRESHOLD) or
             (bert_confidence < BERT_CONFIDENCE_THRESHOLD)
@@ -262,9 +255,8 @@ try:
             producer.poll(0)
             continue
 
-        # ============================================================
         # CHECK 2: ENTITY COOLDOWN
-        # ============================================================
+        
         current_time = time.time()
         last_analysis_time = entity_cooldown_cache.get(entity, 0)
         
@@ -279,9 +271,8 @@ try:
             producer.poll(0)
             continue
 
-        # ============================================================
         # EXECUTE LLM
-        # ============================================================
+        
         stats['llm_analyzed'] += 1
         entity_cooldown_cache[entity] = current_time
         

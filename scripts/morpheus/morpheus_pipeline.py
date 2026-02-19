@@ -38,10 +38,8 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-
-# ============================================================================
 # STAGE 1: REGEX DETECTOR
-# ============================================================================
+
 class RegexDetector:
     """Fast pattern matching for known attack signatures"""
 
@@ -96,10 +94,8 @@ class RegexDetector:
                     }
         return {'regex_match': False}
 
-
-# ============================================================================
 # DFP: AUTOENCODER MODEL
-# ============================================================================
+
 class NetworkAutoencoder(torch.nn.Module):
     """
     Autoencoder for network traffic behavioral modeling.
@@ -130,10 +126,8 @@ class NetworkAutoencoder(torch.nn.Module):
         decoded = self.decoder(encoded)
         return decoded
 
-
-# ============================================================================
 # DFP: PEER GROUP PROFILE
-# ============================================================================
+
 class PeerGroupProfile:
     """
     Holds aggregated statistics for a single peer group.
@@ -216,10 +210,8 @@ class PeerGroupProfile:
 
         return float(np.mean(scores)) if scores else 0.0
 
-
-# ============================================================================
 # DFP: DIGITAL FINGERPRINTING STAGE  (individual baseline + peer comparison)
-# ============================================================================
+
 class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
     """
     Digital Fingerprinting Stage for behavioural anomaly detection.
@@ -238,14 +230,14 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
 
         self.device = torch.device('cuda:0')
 
-        # ── DFP core config ──────────────────────────────────────────────────
+        # DFP core config 
         self.dfp_enabled        = True
         self.entity_field       = 'srcip'
         self.window_size        = 20
         self.training_samples   = 15
         self.anomaly_threshold  = 0.98   # percentile for individual threshold
 
-        # ── Feature sets ─────────────────────────────────────────────────────
+        # Feature sets 
         self.traffic_features = [
             'sentbyte', 'rcvdbyte', 'sentpkt', 'rcvdpkt',
             'duration', 'sentdelta', 'rcvddelta',
@@ -274,14 +266,14 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
 
         self.dfp_features = self.traffic_features   # default; auto-switched per log
 
-        # ── Per-entity state ─────────────────────────────────────────────────
+        # Per-entity state
         self.entity_profiles       = {}   # entity -> profile dict
         self.trained_entities      = set()
         self.max_entities          = 1000
         self.entity_message_counts = {}
         self.min_messages_for_training = 10
 
-        # ── Peer group infrastructure ─────────────────────────────────────────
+        # Peer group infrastructure
         self.peer_groups                = {}   # group_id -> PeerGroupProfile
         self.peer_group_assignments     = {}   # entity   -> group_id
         self.peer_grouping_enabled      = True
@@ -294,7 +286,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         self.individual_weight = 0.6
         self.peer_weight       = 0.4
 
-        # ── Statistics ───────────────────────────────────────────────────────
+        # Statistics 
         self.dfp_stats = {
             'total_entities'         : 0,
             'trained_models'         : 0,
@@ -320,7 +312,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         logging.info(f"Score weights       : individual={self.individual_weight}, peer={self.peer_weight}")
         logging.info("=" * 70)
 
-    # ── Morpheus boilerplate ─────────────────────────────────────────────────
+    # Morpheus boilerplate 
     @property
     def name(self) -> str:
         return "dfp-anomaly-detection"
@@ -331,7 +323,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
     def supports_cpp_node(self):
         return False
 
-    # ── Feature extraction ───────────────────────────────────────────────────
+    # Feature extraction 
     def _extract_features(self, log_data: Dict) -> Dict:
         """Extract and engineer features for DFP. Auto-detects log type."""
 
@@ -475,7 +467,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
 
         return features
 
-    # ── Entity profile management ────────────────────────────────────────────
+    # Entity profile management 
     def _update_entity_profile(self, entity: str, features: Dict):
         """Update or create an entity profile; enforces max_entities limit."""
 
@@ -548,7 +540,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
             -sum((c / total) * np.log2(c / total) for c in counts.values() if c > 0)
         )
 
-    # ── Autoencoder training ─────────────────────────────────────────────────
+    # Autoencoder training 
     def _train_entity_model(self, entity: str) -> bool:
         """Train autoencoder for entity — GPU accelerated via CuPy."""
         import time
@@ -580,7 +572,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         profile['scaler_mean'] = cp.asnumpy(mean_gpu)
         profile['scaler_std']  = cp.asnumpy(std_gpu)
 
-        # Zero-copy CuPy → PyTorch tensor on GPU
+        # Zero-copy CuPy -> PyTorch tensor on GPU
         X_tensor  = torch.as_tensor(X_scaled_gpu, device=self.device)
 
         model     = NetworkAutoencoder(len(self.dfp_features)).to(self.device)
@@ -588,7 +580,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         criterion = torch.nn.MSELoss()
 
         model.train()
-        for _ in range(10):   # reduced from 50 for ~5x speedup
+        for _ in range(10):   
             optimizer.zero_grad()
             loss = criterion(model(X_tensor), X_tensor)
             loss.backward()
@@ -606,7 +598,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         )
         return True
 
-    # ── Peer group management ────────────────────────────────────────────────
+    # Peer group management 
     def _compute_entity_feature_vector(self, entity: str) -> Optional[np.ndarray]:
         """
         Aggregate an entity's recent history into a single vector for clustering.
@@ -696,7 +688,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
             f"entities={len(eligible)}"
         )
 
-    # ── Anomaly detection — individual + peer ────────────────────────────────
+    # Anomaly detection — individual + peer
     def _detect_anomaly(self, entity: str, features: Dict) -> Tuple[bool, float, Dict]:
         """
         Returns (is_anomaly, combined_score, details_dict).
@@ -714,7 +706,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         if not profile or profile['model'] is None:
             return False, 0.0, {'method': 'no_model', 'individual_score': 0.0, 'peer_score': 0.0, 'combined_score': 0.0, 'peer_group_id': None, 'peer_group_size': 0, 'reconstruction_error': 0.0, 'threshold': 0.0}
 
-        # ── Step 1: individual autoencoder score ─────────────────────────────
+        # Step 1: individual autoencoder score
         X = np.array(
             [[features.get(feat, 0.0) for feat in self.dfp_features]],
             dtype=np.float32
@@ -764,7 +756,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
 
         individual_anomaly = recon_err > threshold
 
-        # ── Step 2: peer group score ─────────────────────────────────────────
+        # Step 2: peer group score
         peer_score      = 0.0
         peer_group_id   = None
         peer_group_size = 0
@@ -777,7 +769,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
                 peer_group_id   = gid
                 peer_group_size = len(group.entity_ids)
 
-        # ── Step 3: combine ──────────────────────────────────────────────────
+        # Step 3: combine
         if peer_score > 0.0:
             combined_score = (
                 self.individual_weight * individual_score +
@@ -810,7 +802,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
 
         return is_anomaly, combined_score, details
 
-    # ── Morpheus _build_single ───────────────────────────────────────────────
+    # Morpheus _build_single
     def _build_single(self, builder, input_node):
         def dfp_detection(message: ControlMessage) -> ControlMessage:
             try:
@@ -830,7 +822,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
 
                 dfp_results = []
 
-                # ── DFP disabled fast-path ─────────────────────────────────
+                # DFP disabled fast-path 
                 if not self.dfp_enabled:
                     for _ in range(num_rows):
                         dfp_results.append(self._empty_result(None, 'disabled'))
@@ -838,7 +830,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
                     message.payload(MessageMeta(cudf.DataFrame(data_dict)))
                     return message
 
-                # ── Main processing loop ───────────────────────────────────
+                # Main processing loop 
                 for i in range(num_rows):
                     self.dfp_stats['messages_processed'] += 1
                     self.messages_since_peer_update      += 1
@@ -897,7 +889,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
                 self._write_dfp_columns(data_dict, dfp_results)
                 self.dfp_stats['total_entities'] = len(self.entity_profiles)
 
-                # ── Logging every 100 messages ────────────────────────────
+                # Logging every 100 messages 
                 if self.dfp_stats['messages_processed'] % 100 == 0:
                     logging.info(
                         f"DFP STATUS | "
@@ -941,7 +933,7 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         builder.make_edge(input_node, node)
         return node
 
-    # ── Helpers ──────────────────────────────────────────────────────────────
+    # Helpers
     @staticmethod
     def _empty_result(entity, status: str) -> Dict:
         return {
@@ -966,10 +958,8 @@ class DFPAnomalyStage(PassThruTypeMixin, SinglePortStage):
         ):
             data_dict[key] = [r[key] for r in dfp_results]
 
-
-# ============================================================================
 # MORPHEUS HYBRID STAGE  (Regex + BERT + DFP + optional LLM)
-# ============================================================================
+
 class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
     """
     Multi-stage threat detection:
@@ -990,10 +980,10 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
         logging.info(f"GPU: {gpu_name}")
         logging.info("=" * 70)
 
-        # ── Stage 1: Regex ────────────────────────────────────────────────────
+        # Stage 1: Regex 
         self.regex = RegexDetector()
 
-        # ── Stage 2: BERT ─────────────────────────────────────────────────────
+        # Stage 2: BERT
         logging.info("Loading BERT classifier on GPU...")
         model_path = "/home/intern_soc/bert_fortinet_trained"
         if not os.path.exists(model_path):
@@ -1026,7 +1016,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
         logging.info("BERT loaded on GPU")
         logging.info(f"Model classes   : {list(self.id_to_label.values())}")
 
-        # ── Stage 3: DeepSeek LLM (disabled for real-time) ───────────────────
+        # Stage 3: DeepSeek LLM (disabled for real-time) 
         self.llm_enabled = False
 
         if self.llm_enabled:
@@ -1048,12 +1038,12 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
             self.llm_tokenizer = None
             self.llm_model     = None
 
-        # ── Detection thresholds ──────────────────────────────────────────────
+        # Detection thresholds 
         # dfp_score is now the *combined* individual+peer score, so 0.70 is appropriate
         self.dfp_anomaly_threshold    = 0.70
         self.bert_confidence_threshold = 0.40
 
-        # ── Kafka producer ────────────────────────────────────────────────────
+        # Kafka producer 
         from confluent_kafka import Producer
         self.kafka_producer = Producer({
             'bootstrap.servers': '192.168.19.80:9092',
@@ -1063,7 +1053,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
         self.wazuh_enabled = False
         logging.info(f"Kafka output: {self.output_topic}")
 
-        # ── Statistics ────────────────────────────────────────────────────────
+        # Statistics 
         self.stats = {
             'total'                 : 0,
             'regex_hits'            : 0,
@@ -1091,7 +1081,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
     def supports_cpp_node(self):
         return False
 
-    # ── LLM analysis ─────────────────────────────────────────────────────────
+    # LLM analysis 
     def _llm_analyze(self, log_data, text, is_dfp_anomaly=False, dfp_score=0.0):
         """DeepSeek-R1 reasoning for complex / ambiguous cases."""
         try:
@@ -1199,7 +1189,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
                 'llm_trigger'  : 'dfp_anomaly' if is_dfp_anomaly else 'low_bert_confidence'
             }
 
-    # ── Morpheus _build_single ───────────────────────────────────────────────
+    # Morpheus _build_single 
     def _build_single(self, builder, input_node):
         def hybrid_detection(message: ControlMessage) -> ControlMessage:
             try:
@@ -1231,7 +1221,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
 
                     stages_used = []
 
-                    # ── Stage 1: Regex ────────────────────────────────────────
+                    # Stage 1: Regex 
                     regex_result = self.regex.detect(text)
                     if regex_result['regex_match']:
                         self.stats['regex_hits'] += 1
@@ -1257,7 +1247,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
                         )
                         continue
 
-                    # ── Stage 2: BERT ─────────────────────────────────────────
+                    # Stage 2: BERT 
                     self.stats['bert_processed'] += 1
                     stages_used.append('bert')
 
@@ -1278,7 +1268,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
                     llm_analysis      = None
                     llm_is_suspicious = False
 
-                    # ── Stage 3: DFP results (written by DFPAnomalyStage) ─────
+                    # Stage 3: DFP results (written by DFPAnomalyStage)
                     stages_used.append('dfp')
 
                     dfp_is_anomaly       = int(log_data.get('dfp_is_anomaly', 0))
@@ -1300,11 +1290,11 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
                         else:
                             self.stats['dfp_individual_anomaly'] += 1
 
-                    # ── Stage 4: LLM (disabled in real-time mode) ─────────────
+                    # Stage 4: LLM (disabled in real-time mode) 
                     llm_analysis      = None
                     llm_is_suspicious = False
 
-                    # ── Threat determination ──────────────────────────────────
+                    # Threat determination
                     bert_threat = threat_class is not None and threat_class != 'normal'
                     dfp_threat  = dfp_is_anomaly == 1 and dfp_score > self.dfp_anomaly_threshold
                     is_threat   = bert_threat or dfp_threat
@@ -1312,7 +1302,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
                     if is_threat:
                         self.stats['threats'] += 1
 
-                    # ── Build and publish result ──────────────────────────────
+                    # Build and publish result 
                     result = {
                         **log_data,
                         'full_log'            : log_data.get('full_log', ''),
@@ -1391,10 +1381,8 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
         builder.make_edge(input_node, node)
         return node
 
-
-# ============================================================================
 # PIPELINE BUILDER
-# ============================================================================
+
 def build_pipeline():
     config = Config()
     config.mode                 = "OTHER"
@@ -1421,10 +1409,8 @@ def build_pipeline():
 
     return pipeline
 
-
-# ============================================================================
 # MAIN
-# ============================================================================
+
 if __name__ == "__main__":
     try:
         pipeline = build_pipeline()

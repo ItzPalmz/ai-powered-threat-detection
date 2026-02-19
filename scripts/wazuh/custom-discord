@@ -171,7 +171,7 @@ def send_to_discord(src):
 # Main Loop
 # ========================
 def main():
-    print("📡 Polling OpenSearch index:", INDEX_NAME)
+    print("Polling OpenSearch index:", INDEX_NAME)
     while True:
         try:
             hits = poll_latest()
