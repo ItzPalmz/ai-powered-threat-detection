@@ -1056,14 +1056,3 @@ curl -k -u admin:${WAZUH_ADMIN_PASSWORD} \
 # Full system diagnostic
 ./health_check.sh
 ```
-
-## Conclusion
-
-Your Morpheus AI Threat Detection System is now deployed and operational.
-
-**Success Criteria**:
-- All services running
-- Data flowing end-to-end
-- Threats detected and alerted
-- Dashboard accessible
-- Backups configured
