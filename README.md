@@ -231,19 +231,15 @@ morpheus-threat-detection/
 │   │   └── morpheus_pipeline.py
 │   ├── llm/
 │   │   └── llm_enrichment.py
-│   ├── wazuh/
-│   │   ├── llm_to_wazuh.py
-│   │   └── custom-discord
-│   └── kafka/
-│       └── kafka_manager.sh
+│   └── wazuh/
+│       ├── llm_to_wazuh.py
+│       └── custom-discord
 ├── configs/
 │   ├── logstash/
 │   │   └── syslog-to-kafka.conf
-│   ├── wazuh/
-│   │   ├── local_rules.xml
-│   │   └── ossec.conf
-│   └── kafka/
-│       └── docker-compose.yml
+│   └── wazuh/
+│       ├── local_rules.xml
+│       └── ossec.conf
 ├── deployment/
 │   ├── systemd/
 │   │   ├── morpheus-llm-enricher.service
