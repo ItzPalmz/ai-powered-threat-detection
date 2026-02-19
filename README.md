@@ -242,13 +242,15 @@ morpheus-threat-detection/
 │       └── ossec.conf
 ├── deployment/
 │   ├── systemd/
-│   │   ├── morpheus-llm-enricher.service
 │   │   └── morpheus-llm-indexer.service
 │   └── docker/
 │       └── docker-compose.yml
 ├── examples/
 │   ├── test_bruteforce.py
 │   └── generate_traffic.py
+├── tests/
+│   └── test_smoke.py 
+├── requirements-dev.txt
 └── requirements.txt
 ```
 
