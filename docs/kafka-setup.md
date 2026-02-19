@@ -553,12 +553,6 @@ cat backup.json | docker exec -i kafka kafka-console-producer \
 5. **Backups**: Regularly backup topic configurations
 6. **Updates**: Keep Kafka version updated for security patches
 
-## Next Steps
-
-- [Logstash Setup](logstash-setup.md) - Configure log ingestion
-- [Morpheus Setup](morpheus-setup.md) - Deploy threat detection pipeline
-- [Monitoring](monitoring.md) - Set up comprehensive monitoring
-
 ## References
 
 - [Confluent Documentation](https://docs.confluent.io/)

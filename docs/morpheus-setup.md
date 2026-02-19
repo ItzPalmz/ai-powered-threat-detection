@@ -571,12 +571,6 @@ mv models/bert_fortinet_updated models/bert_fortinet_trained
 sudo systemctl restart morpheus-pipeline
 ```
 
-## Next Steps
-
-- [LLM Enrichment Setup](llm-enrichment.md) - Add contextual analysis
-- [Wazuh Integration](wazuh-integration.md) - Connect to SIEM
-- [Monitoring Guide](monitoring.md) - Set up comprehensive monitoring
-
 ## References
 
 - [NVIDIA Morpheus Documentation](https://docs.nvidia.com/morpheus/)

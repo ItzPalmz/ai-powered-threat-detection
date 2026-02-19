@@ -597,12 +597,6 @@ elif not dfp_is_anomaly and llm_is_suspicious:
     confidence = llm_confidence * 0.8  # Reduce
 ```
 
-## Next Steps
-
-- [Wazuh Integration](wazuh-integration.md) - Send enriched logs to SIEM
-- [Monitoring Guide](monitoring.md) - Set up dashboards
-- [Troubleshooting](troubleshooting.md) - Common issues
-
 ## References
 
 - [Mistral AI Documentation](https://docs.mistral.ai/)
