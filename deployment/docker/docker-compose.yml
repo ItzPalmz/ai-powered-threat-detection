@@ -58,7 +58,7 @@ services:
       - ./configs:/workspace/configs
       - morpheus-cache-1:/root/.cache
     environment:
-      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_VISIBLE_DEVICES=2
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - MORPHEUS_LOG_LEVEL=INFO
     command: python /workspace/scripts/morpheus_pipeline.py
@@ -85,7 +85,7 @@ services:
       - ./configs:/workspace/configs
       - morpheus-cache-2:/root/.cache
     environment:
-      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_VISIBLE_DEVICES=3
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - MORPHEUS_LOG_LEVEL=INFO
     command: python /workspace/scripts/morpheus_pipeline.py
@@ -112,7 +112,7 @@ services:
       - ./configs:/workspace/configs
       - morpheus-cache-3:/root/.cache
     environment:
-      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_VISIBLE_DEVICES=3
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - MORPHEUS_LOG_LEVEL=INFO
     command: python /workspace/scripts/morpheus_pipeline.py
@@ -139,7 +139,7 @@ services:
       - ./configs:/workspace/configs
       - morpheus-cache-4:/root/.cache
     environment:
-      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_VISIBLE_DEVICES=3
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - MORPHEUS_LOG_LEVEL=INFO
     command: python /workspace/scripts/morpheus_pipeline.py
@@ -166,7 +166,7 @@ services:
       - ./configs:/workspace/configs
       - llm-cache:/root/.cache
     environment:
-      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_VISIBLE_DEVICES=2
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - LLM_MODEL_PATH=/workspace/models/mistral-7b-instruct-v0.2
       - COOLDOWN_SECONDS=600
@@ -195,7 +195,7 @@ services:
       - ./configs:/workspace/configs
       - llm-cache-2:/root/.cache
     environment:
-      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_VISIBLE_DEVICES=2
       - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
       - LLM_MODEL_PATH=/workspace/models/mistral-7b-instruct-v0.2
       - COOLDOWN_SECONDS=600
