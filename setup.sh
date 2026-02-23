@@ -428,7 +428,7 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
         $VOLUME_ARGS \
         --restart unless-stopped \
         "$IMAGE_NAME" \
-        python /workspace/scripts/morpheus/morpheus_pipeline.py
+        python /workspace/ai-powered-threat-detection/scripts/morpheus/morpheus_pipeline.py
     
     sleep 3
     print_success "$CONTAINER_NAME started"
