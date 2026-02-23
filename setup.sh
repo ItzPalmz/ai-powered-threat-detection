@@ -38,7 +38,7 @@ CACHE_DIR="$REPO_ROOT/models/dfp_cache"
 CONFIGS_DIR="$REPO_ROOT/configs"
 
 # User-provided paths (will prompt if not set)
-BERT_MODEL_PATH="${BERT_MODEL_PATH:-}"
+BERT_MODEL_PATH="${models/bert_fortinet_trained:-}"
 LLM_MODELS_PATH="${LLM_MODELS_PATH:-}"
 
 # ==================== FUNCTIONS ====================
