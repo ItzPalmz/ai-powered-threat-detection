@@ -70,15 +70,6 @@ COPY configs/ /workspace/configs/
 ENV KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 
 # ------------------------------------------------------------------
-# Healthcheck — must use shell form for CUDA test
-# ------------------------------------------------------------------
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD python3 - <<'EOF' || exit 1
-import torch
-assert torch.cuda.is_available()
-EOF
-
-# ------------------------------------------------------------------
 # Default command
 # ------------------------------------------------------------------
 CMD ["python3", "/workspace/scripts/morpheus/morpheus_pipeline.py"]
