@@ -1,0 +1,80 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+.github
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Data files
+data/
+*.csv
+*.parquet
+
+# Large model files (will be mounted)
+models/*.bin
+models/*.safetensors
+models/*.onnx
+models/*.pt
+models/*.pth
+models/bert_fortinet_trained/
+
+# Cache
+.cache/
+*.cache
+models/dfp_cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Tests
+tests/
+
+# Docker files
+docker-compose*.yml
+.dockerignore
+
+# Environment
+.env
+.env.*
+
+# Setup scripts
+setup.sh
+emergency-recovery.sh
