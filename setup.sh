@@ -425,7 +425,6 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
         -e KAFKA_INPUT_TOPIC=sys_logs \
         -e KAFKA_OUTPUT_TOPIC=morpheus-final-realtime-dfp \
         -e MORPHEUS_LOG_LEVEL=INFO \
-        -v ~/bert_fortinet_trained:bert_fortinet_trained \
         -v ~/ai-powered-threat-detection/scripts:/scripts \
         $VOLUME_ARGS \
         --restart unless-stopped \
