@@ -8,6 +8,7 @@ torch>=2.0.0
 transformers>=4.30.0
 scikit-learn>=1.3.0
 scipy>=1.11.0
+opensearch-py >=2.0.0
 
 # ============================================================================
 # GPU Acceleration
@@ -47,8 +48,8 @@ python-dateutil>=2.8.0
 # Optional: LLM Integration (DeepSeek-R1)
 # ============================================================================
 # Uncomment if using LLM stage:
-# accelerate>=0.20.0
-# bitsandbytes>=0.41.0
+accelerate>=0.20.0
+bitsandbytes>=0.41.0
 
 # ============================================================================
 # Version Notes
