@@ -133,29 +133,119 @@ print_success "Kafka ready"
 # ==================== DEPLOY ====================
 print_header "Step 7: Starting Morpheus"
 
-CONTAINER_NAME="morpheus-production-1"
-docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
+# Start Morpheus Pipeline instances
+for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
+    CONTAINER_NAME="morpheus-production-$i"
+    
+    if docker ps -a | grep -q "$CONTAINER_NAME"; then
+        print_warning "Removing existing container: $CONTAINER_NAME"
+        docker rm -f "$CONTAINER_NAME"
+    fi
+    
+    print_info "Starting $CONTAINER_NAME..."
+    
+    VOLUME_ARGS="-v $SCRIPTS_DIR:/workspace/scripts:ro"
+    VOLUME_ARGS="$VOLUME_ARGS -v $CACHE_DIR:/workspace/models/dfp_cache:rw"
+    
+    if [ -n "$BERT_MODEL_PATH" ]; then
+        VOLUME_ARGS="$VOLUME_ARGS -v $BERT_MODEL_PATH:/models/bert:ro"
+    fi
+    
+    docker run -d \
+        --name "$CONTAINER_NAME" \
+        --network "$NETWORK_NAME" \
+        --gpus all \
+        -e CUDA_VISIBLE_DEVICES=0 \
+        -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
+        -e KAFKA_INPUT_TOPIC=sys_logs \
+        -e KAFKA_OUTPUT_TOPIC=morpheus-final-realtime-dfp \
+        -e MORPHEUS_LOG_LEVEL=INFO \
+        -v ~/bert_fortinet_trained:bert_fortinet_trained \
+        -v ~/ai-powered-threat-detection/scripts:/scripts \
+        $VOLUME_ARGS \
+        --restart unless-stopped \
+        "$IMAGE_NAME" \
+        python /workspace/ai-powered-threat-detection/scripts/morpheus/morpheus_pipeline.py
+    
+    sleep 3
+    print_success "$CONTAINER_NAME started"
+done
 
-docker run -d \
-  --name "$CONTAINER_NAME" \
-  --network "$NETWORK_NAME" \
-  --gpus all \
-  -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
-  -e KAFKA_INPUT_TOPIC=sys_logs \
-  -e KAFKA_OUTPUT_TOPIC=morpheus-final-realtime-dfp \
-  -v "$SCRIPTS_DIR:/workspace/scripts:ro" \
-  -v "$CACHE_DIR:/workspace/models/dfp_cache:rw" \
-  -v "$BERT_MODEL_PATH:/models/bert:ro" \
-  --restart unless-stopped \
-  "$IMAGE_NAME" \
-  python /workspace/scripts/morpheus/morpheus_pipeline.py
+# Start LLM Enrichment instances
+if [ "$LLM_REPLICAS" -gt 0 ]; then
+    print_header "Starting LLM Enrichment Containers"
+    
+    for i in $(seq 1 "$LLM_REPLICAS"); do
+        if [ "$i" -eq 1 ]; then
+            CONTAINER_NAME="morpheus-llm-enrichment"
+        else
+            CONTAINER_NAME="morpheus-llm-enrichment-$i"
+        fi
+        
+        if docker ps -a | grep -q "$CONTAINER_NAME"; then
+            print_warning "Removing existing container: $CONTAINER_NAME"
+            docker rm -f "$CONTAINER_NAME"
+        fi
+        
+        print_info "Starting $CONTAINER_NAME..."
+        
+        VOLUME_ARGS="-v $SCRIPTS_DIR:/workspace/scripts:ro"
+        
+        if [ -n "$LLM_MODELS_PATH" ]; then
+            VOLUME_ARGS="$VOLUME_ARGS -v $LLM_MODELS_PATH:/workspace/models:ro"
+        fi
+        
+        docker run -d \
+            --name "$CONTAINER_NAME" \
+            --network "$NETWORK_NAME" \
+            --gpus all \
+            -e CUDA_VISIBLE_DEVICES=0 \
+            -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
+            -e COOLDOWN_SECONDS=600 \
+            -e MULTI_LOG_WINDOW=120 \
+            $VOLUME_ARGS \
+            --restart unless-stopped \
+            "$IMAGE_NAME" \
+            python /workspace/scripts/llm/llm_enrichment.py
+        
+        sleep 2
+        print_success "$CONTAINER_NAME started"
+    done
+fi
 
-print_success "Morpheus container started"
+# Start Wazuh Writer
+if [ "$WRITER_ENABLED" = true ]; then
+    print_header "Starting Wazuh Writer"
+    
+    CONTAINER_NAME="morpheus-writer"
+    
+    if docker ps -a | grep -q "$CONTAINER_NAME"; then
+        print_warning "Removing existing container: $CONTAINER_NAME"
+        docker rm -f "$CONTAINER_NAME"
+    fi
+    
+    print_info "Starting $CONTAINER_NAME..."
+    
+    docker run -d \
+        --name "$CONTAINER_NAME" \
+        --network "$NETWORK_NAME" \
+        -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
+        -e WAZUH_INDEXER_HOST="${WAZUH_INDEXER_HOST:-192.168.19.80}" \
+        -e WAZUH_INDEXER_PORT="${WAZUH_INDEXER_PORT:-9200}" \
+        -e WAZUH_INDEXER_USER="${WAZUH_INDEXER_USER:-admin}" \
+        -e WAZUH_INDEXER_PASSWORD="${WAZUH_INDEXER_PASSWORD}" \
+        -v "$SCRIPTS_DIR:/workspace/scripts:ro" \
+        --restart unless-stopped \
+        "$IMAGE_NAME" \
+        python /workspace/scripts/wazuh/llm_to_wazuh.py
+    
+    print_success "$CONTAINER_NAME started"
+fi
 
-# ==================== SUMMARY ====================
-print_header "Deployment Complete"
+# ==================== VERIFICATION ====================
 
-docker ps --format "table {{.Names}}\t{{.Status}}"
+print_header "Step 9: Deployment Summary"
+
 echo ""
 echo "View logs:"
 echo "docker logs -f morpheus-production-1"
