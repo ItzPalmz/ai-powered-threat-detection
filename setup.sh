@@ -146,8 +146,8 @@ for dir in "${REQUIRED_DIRS[@]}"; do
 done
 
 # Check for Python scripts
-if [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline.py" ] || \
-   [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline.py" ]; then
+if [ -f "$SCRIPTS_DIR/morpheus/morpheus_dfp_pipeline.py" ] || \
+   [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline_official_dfp.py" ]; then
     print_success "Morpheus pipeline scripts found"
 else
     print_warning "Morpheus pipeline scripts not found in $SCRIPTS_DIR/morpheus/"
@@ -171,7 +171,7 @@ if [ -z "$BERT_MODEL_PATH" ]; then
     echo ""
     echo -e "${BLUE}Enter path to BERT model directory:${NC}"
     echo "  This is required for ML-based threat classification"
-    echo "  Example: /home/user/ai-powwered-threat-detection/models/bert_fortinet_trained"
+    echo "  Example: /home/user/bert_fortinet_trained"
     echo ""
     echo "  The directory should contain:"
     echo "    - config.json"
@@ -425,11 +425,10 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
         -e KAFKA_INPUT_TOPIC=sys_logs \
         -e KAFKA_OUTPUT_TOPIC=morpheus-final-realtime-dfp \
         -e MORPHEUS_LOG_LEVEL=INFO \
-        -v ~/ai-powered-threat-detection/scripts:/scripts \
         $VOLUME_ARGS \
         --restart unless-stopped \
         "$IMAGE_NAME" \
-        python /workspace/ai-powered-threat-detection/scripts/morpheus/morpheus_pipeline.py
+        python /workspace/scripts/morpheus/morpheus_dfp_pipeline.py
     
     sleep 3
     print_success "$CONTAINER_NAME started"
@@ -573,6 +572,6 @@ print_success "Configuration saved to: $CONFIG_FILE"
 
 echo ""
 echo "=========================================="
-echo "Setup Complete!"
+echo "Setup Complete! 🎉"
 echo "=========================================="
 echo ""
