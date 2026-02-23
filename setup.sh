@@ -32,10 +32,10 @@ IMAGE_NAME="${IMAGE_NAME:-morpheus-rtx5090:latest}"
 NETWORK_NAME="${NETWORK_NAME:-morpheus-network}"
 
 # Paths relative to repository root
-SCRIPTS_DIR="$REPO_ROOT/ai-powered-threat-detection/scripts"
-MODELS_DIR="$REPO_ROOT/ai-powered-threat-detection/models"
-CACHE_DIR="$REPO_ROOT/ai-powered-threat-detection/models/dfp_cache"
-CONFIGS_DIR="$REPO_ROOT/ai-powered-threat-detection/configs"
+SCRIPTS_DIR="$REPO_ROOT/ai-powered-threat-detection//scripts"
+MODELS_DIR="$REPO_ROOT/ai-powered-threat-detection//models"
+CACHE_DIR="$REPO_ROOT/ai-powered-threat-detection//models/dfp_cache"
+CONFIGS_DIR="$REPO_ROOT/ai-powered-threat-detection//configs"
 
 # User-provided paths (will prompt if not set)
 BERT_MODEL_PATH="${BERT_MODEL_PATH:-}"
