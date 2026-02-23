@@ -19,10 +19,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements files first (for better Docker layer caching)
-COPY requirements.txt /workspace/requirements.txt
-
-# Install requirements-dev.txt if it exists
-COPY requirements-dev.txt /workspace/requirements-dev.txt 2>/dev/null || echo "No dev requirements"
+COPY requirements*.txt /workspace/
 
 # Upgrade pip
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
@@ -54,9 +51,9 @@ RUN mkdir -p \
 RUN chmod -R 777 /workspace/models/dfp_cache /workspace/logs /workspace/data
 
 # Copy application files (these will be overridden by volume mounts in production)
-COPY scripts/ /workspace/scripts/ 2>/dev/null || mkdir -p /workspace/scripts
-COPY models/ /workspace/models/ 2>/dev/null || mkdir -p /workspace/models
-COPY configs/ /workspace/configs/ 2>/dev/null || mkdir -p /workspace/configs
+COPY scripts/ /workspace/scripts/
+COPY models/ /workspace/models/
+COPY configs/ /workspace/configs/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
