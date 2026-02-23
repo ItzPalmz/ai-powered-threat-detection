@@ -34,11 +34,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 
 # Use Morpheus Python (already GPU-aligned)
-RUN /opt/conda/bin/pip install --upgrade pip setuptools wheel
+RUN conda run -n morpheus python -m pip install --upgrade pip setuptools wheel
 
 # Install ONLY pure-python deps
 # (No torch / cudf / cupy here — already provided by base image)
-RUN /opt/conda/bin/pip install --no-cache-dir -r requirements.txt
+RUN conda run -n morpheus python -m pip install --no-cache-dir -r requirements.txt
 
 # ------------------------------------------------------------------
 # Create runtime directories
