@@ -225,8 +225,8 @@ fi
 print_header "Step 4: Building Docker Image"
 
 # Check if Dockerfile exists
-if [ ! -f "$REPO_ROOT/Dockerfile" ]; then
-    print_error "Dockerfile not found in $REPO_ROOT"
+if [ ! -f "ai-powered-threat-detection/Dockerfile" ]; then
+    print_error "Dockerfile not found in /ai-powered-threat-detection"
     echo ""
     echo "The Dockerfile is required to build the container image."
     echo "Please ensure Dockerfile exists in the repository root."
