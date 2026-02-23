@@ -147,7 +147,7 @@ done
 
 # Check for Python scripts
 if [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline.py" ] || \
-   [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline_official_dfp.py" ]; then
+   [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline.py" ]; then
     print_success "Morpheus pipeline scripts found"
 else
     print_warning "Morpheus pipeline scripts not found in $SCRIPTS_DIR/morpheus/"
