@@ -13,7 +13,9 @@ NC='\033[0m' # No Color
 
 # Script directory (where this script is located)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Repository root is where setup.sh is located
+REPO_ROOT="$SCRIPT_DIR"
 
 echo ""
 echo "=========================================="
@@ -21,6 +23,30 @@ echo "Morpheus AI Threat Detection - Setup"
 echo "=========================================="
 echo ""
 echo -e "${BLUE}Repository root: $REPO_ROOT${NC}"
+
+# Verify we're in the correct directory
+if [ ! -f "$REPO_ROOT/setup.sh" ]; then
+    echo -e "${RED}Error: Cannot find setup.sh in current directory${NC}"
+    echo "Please run this script from the repository root:"
+    echo "  cd /path/to/ai-powered-threat-detection"
+    echo "  ./setup.sh"
+    exit 1
+fi
+
+# Verify this looks like the right repository
+if [ ! -d "$REPO_ROOT/scripts" ] || [ ! -f "$REPO_ROOT/requirements.txt" ]; then
+    echo -e "${YELLOW}⚠ Warning: This doesn't look like the ai-powered-threat-detection repository${NC}"
+    echo "Expected to find:"
+    echo "  - scripts/ directory"
+    echo "  - requirements.txt file"
+    echo ""
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
+
 echo ""
 
 # ==================== CONFIGURATION ====================
@@ -32,10 +58,10 @@ IMAGE_NAME="${IMAGE_NAME:-morpheus-rtx5090:latest}"
 NETWORK_NAME="${NETWORK_NAME:-morpheus-network}"
 
 # Paths relative to repository root
-SCRIPTS_DIR="$REPO_ROOT/ai-powered-threat-detection/scripts"
-MODELS_DIR="$REPO_ROOT/ai-powered-threat-detection/models"
-CACHE_DIR="$REPO_ROOT/ai-powered-threat-detection/models/dfp_cache"
-CONFIGS_DIR="$REPO_ROOT/ai-powered-threat-detection/configs"
+SCRIPTS_DIR="$REPO_ROOT/scripts"
+MODELS_DIR="$REPO_ROOT/models"
+CACHE_DIR="$REPO_ROOT/models/dfp_cache"
+CONFIGS_DIR="$REPO_ROOT/configs"
 
 # User-provided paths (will prompt if not set)
 BERT_MODEL_PATH="${BERT_MODEL_PATH:-}"
@@ -146,12 +172,12 @@ for dir in "${REQUIRED_DIRS[@]}"; do
 done
 
 # Check for Python scripts
-if [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline.py" ] || \
+if [ -f "$SCRIPTS_DIR/morpheus/morpheus_dfp_pipeline.py" ] || \
    [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline_official_dfp.py" ]; then
     print_success "Morpheus pipeline scripts found"
 else
     print_warning "Morpheus pipeline scripts not found in $SCRIPTS_DIR/morpheus/"
-    echo "Expected: morpheus_pipeline.py or morpheus_pipeline_official_dfp.py"
+    echo "Expected: morpheus_dfp_pipeline.py or morpheus_pipeline_official_dfp.py"
 fi
 
 # Create cache directory
@@ -225,8 +251,8 @@ fi
 print_header "Step 4: Building Docker Image"
 
 # Check if Dockerfile exists
-if [ ! -f "ai-powered-threat-detection/Dockerfile" ]; then
-    print_error "Dockerfile not found in /ai-powered-threat-detection"
+if [ ! -f "$REPO_ROOT/Dockerfile" ]; then
+    print_error "Dockerfile not found in $REPO_ROOT"
     echo ""
     echo "The Dockerfile is required to build the container image."
     echo "Please ensure Dockerfile exists in the repository root."
@@ -446,7 +472,7 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
         $VOLUME_ARGS \
         --restart unless-stopped \
         "$IMAGE_NAME" \
-        python /workspace/scripts/morpheus/morpheus_pipeline.py
+        python /workspace/scripts/morpheus/morpheus_dfp_pipeline.py
     
     sleep 3
     print_success "$CONTAINER_NAME started"
