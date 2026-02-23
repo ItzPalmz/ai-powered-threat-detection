@@ -32,10 +32,10 @@ IMAGE_NAME="${IMAGE_NAME:-morpheus-rtx5090:latest}"
 NETWORK_NAME="${NETWORK_NAME:-morpheus-network}"
 
 # Paths relative to repository root
-SCRIPTS_DIR="$REPO_ROOT/ai-powered-threat-detection/scripts"
-MODELS_DIR="$REPO_ROOT/ai-powered-threat-detection/models"
-CACHE_DIR="$REPO_ROOT/ai-powered-threat-detection/models/dfp_cache"
-CONFIGS_DIR="$REPO_ROOT/ai-powered-threat-detectionconfigs"
+SCRIPTS_DIR="$REPO_ROOT/ai-powered-threat-detection//scripts"
+MODELS_DIR="$REPO_ROOT/ai-powered-threat-detection//models"
+CACHE_DIR="$REPO_ROOT/ai-powered-threat-detection//models/dfp_cache"
+CONFIGS_DIR="$REPO_ROOT/ai-powered-threat-detection//configs"
 
 # User-provided paths (will prompt if not set)
 BERT_MODEL_PATH="${BERT_MODEL_PATH:-}"
@@ -224,6 +224,16 @@ fi
 
 print_header "Step 4: Building Docker Image"
 
+# Check if Dockerfile exists
+if [ ! -f "$REPO_ROOT/Dockerfile" ]; then
+    print_error "Dockerfile not found in $REPO_ROOT"
+    echo ""
+    echo "The Dockerfile is required to build the container image."
+    echo "Please ensure Dockerfile exists in the repository root."
+    exit 1
+fi
+print_success "Dockerfile found"
+
 if docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
     print_info "Image $IMAGE_NAME already exists"
     echo ""
@@ -235,18 +245,26 @@ if docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
         REBUILD_IMAGE=false
     fi
 else
+    print_warning "Image $IMAGE_NAME not found - building new image"
     REBUILD_IMAGE=true
 fi
 
 if [ "$REBUILD_IMAGE" = true ]; then
-    if [ -f "$REPO_ROOT/Dockerfile" ]; then
-        print_info "Building Docker image..."
-        cd "$REPO_ROOT"
-        docker build -t "$IMAGE_NAME" .
-        print_success "Image built: $IMAGE_NAME"
+    print_info "Building Docker image (this may take 10-15 minutes)..."
+    print_info "Installing all Python dependencies from requirements.txt..."
+    cd "$REPO_ROOT"
+    
+    # Build with output
+    if docker build -t "$IMAGE_NAME" . ; then
+        print_success "Image built successfully: $IMAGE_NAME"
     else
-        print_error "Dockerfile not found in $REPO_ROOT"
-        echo "Cannot build image"
+        print_error "Failed to build Docker image"
+        echo ""
+        echo "Common issues:"
+        echo "  1. Check Dockerfile syntax"
+        echo "  2. Ensure requirements.txt exists"
+        echo "  3. Check internet connectivity"
+        echo "  4. Run: docker build -t $IMAGE_NAME . --no-cache"
         exit 1
     fi
 else
