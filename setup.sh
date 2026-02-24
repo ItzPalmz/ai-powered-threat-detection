@@ -362,7 +362,7 @@ fi
 print_info "Creating Kafka topics..."
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 \
     --create --topic sys_logs \
-    --partitions 3 --replication-factor 1 --if-not-exists
+    --partitions 8 --replication-factor 1 --if-not-exists
 
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 \
     --create --topic morpheus-final-realtime-dfp \
