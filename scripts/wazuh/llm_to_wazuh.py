@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-Kafka LLM Enrichment to Wazuh OpenSearch Consumer
-Consumes from morpheus-llm-enrichment and indexes to Wazuh
+Optimized Kafka to Wazuh OpenSearch Consumer
+- Standard UTC @timestamp handling
+- Time-based flushing to minimize latency
+- Adaptive batch sizing
 """
 from confluent_kafka import Consumer
 from opensearchpy import OpenSearch, helpers
@@ -21,25 +23,25 @@ logging.basicConfig(
 # CONFIGURATION
 # ============================================================================
 KAFKA_BROKER = "192.168.19.80:9092"
-KAFKA_TOPIC = "morpheus-llm-enrichment"  
-GROUP_ID = "morpheus-llm-wazuh-indexer"
+KAFKA_TOPIC = "morpheus-final-realtime-dfp"
+GROUP_ID = "morpheus-wazuh-indexer"
 
 INDEXER_HOST = "192.168.19.80"
 INDEXER_PORT = 9200
 INDEXER_USER = "admin"
 INDEXER_PASS = "HsU4+m88zRiiJ*yI7gbWlBaloHmycLDC"
-INDEX_NAME = "morpheus-llm-alerts"  
+INDEX_NAME = "morpheus-final-realtime-dfp-2"
 
 # ============================================================================
 # TUNING PARAMETERS 
 # ============================================================================
-MAX_BULK_SIZE = 50         # Smaller batches for lower latency
-MAX_FLUSH_INTERVAL = 1.0   # Flush every 1 second max
+MAX_BULK_SIZE = 200        # Documents per batch
+MAX_FLUSH_INTERVAL = 0.5   # Seconds
 POLL_TIMEOUT = 0.1         # Seconds
 
 # Kafka Consumer Performance Tuning
-KAFKA_FETCH_MIN_BYTES = 1  # Process immediately
-KAFKA_FETCH_WAIT_MAX_MS = 100    
+KAFKA_FETCH_MIN_BYTES = 524288  
+KAFKA_FETCH_WAIT_MAX_MS = 50    
 
 # ============================================================================
 # OPENSEARCH CLIENT
@@ -88,8 +90,6 @@ buffer = []
 last_flush_time = time.time()
 total_indexed = 0
 total_errors = 0
-llm_analyzed = 0
-llm_suspicious = 0
 
 def flush_bulk(actions):
     global total_indexed, total_errors, last_flush_time
@@ -98,6 +98,7 @@ def flush_bulk(actions):
     
     try:
         start_time = time.time()
+        # Use bulk helper from opensearch-py
         success, errors = helpers.bulk(
             client, 
             actions,
@@ -112,10 +113,7 @@ def flush_bulk(actions):
             total_errors += len(errors)
             logging.error(f"Bulk error: {errors[0]}")
         
-        logging.info(
-            f"Indexed {success} docs in {elapsed:.3f}s | "
-            f"Total: {total_indexed} | LLM Analyzed: {llm_analyzed} | Suspicious: {llm_suspicious}"
-        )
+        logging.info(f"Batch complete: {success} docs in {elapsed:.3f}s | Total: {total_indexed}")
         last_flush_time = time.time()
         
     except Exception as e:
@@ -133,12 +131,7 @@ def should_flush(buffer_size):
 # ============================================================================
 # MAIN CONSUMER LOOP
 # ============================================================================
-logging.info("="*70)
-logging.info(f"LLM Enrichment -> Wazuh Indexer Started")
-logging.info(f"   Topic: {KAFKA_TOPIC}")
-logging.info(f"   Index: {INDEX_NAME}")
-logging.info(f"   Max Latency: {MAX_FLUSH_INTERVAL}s")
-logging.info("="*70)
+logging.info(f"Starting consumer for topic: {KAFKA_TOPIC}")
 
 try:
     while True:
@@ -163,26 +156,18 @@ try:
             logging.error(f"JSON decode failure: {e}")
             continue
         
-        # 4. Track LLM stats
-        if event.get('llm_status') == 'analyzed':
-            llm_analyzed += 1
-            if event.get('llm_is_suspicious') == 1:
-                llm_suspicious += 1
-        
-        # 5. Enforce @timestamp for Wazuh/OpenSearch
+        # 4. Enforce @timestamp for Wazuh/OpenSearch
         if "@timestamp" not in event:
+            # Use datetime.utcnow() for standard ISO format with Z suffix
             event["@timestamp"] = datetime.utcnow().isoformat() + "Z"
         
-        # 6. Add event type marker for Wazuh rules
-        event["event_type"] = "morpheus_llm_enrichment"
-        
-        # 7. Buffer for Bulk
+        # 5. Buffer for Bulk
         buffer.append({
             "_index": INDEX_NAME,
             "_source": event
         })
 
-        # 8. Check for Size-based Flush
+        # 6. Check for Size-based Flush
         if should_flush(len(buffer)):
             flush_bulk(buffer)
             buffer = []
