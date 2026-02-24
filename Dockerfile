@@ -35,7 +35,10 @@ COPY requirements.txt .
 
 # Use Morpheus Python (already GPU-aligned)
 RUN conda run -n morpheus python -m pip install --upgrade pip setuptools wheel
-
+RUN conda run -n morpheus pip uninstall -y torch torchvision torchaudio
+RUN conda run -n morpheus pip install --pre torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/nightly/cu124
+    
 # Install ONLY pure-python deps
 # (No torch / cudf / cupy here — already provided by base image)
 RUN conda run -n morpheus python -m pip install --no-cache-dir -r requirements.txt
