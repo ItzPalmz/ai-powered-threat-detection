@@ -82,9 +82,6 @@ sudo sh get-docker.sh
 # Install Docker Compose
 sudo apt install docker-compose
 
-# Install Conda
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
 ```
 
 ### 2. Get your NVIDIA NGC API Key
@@ -102,17 +99,11 @@ Username: $oauthtoken
 Password: <PASTE YOUR API KEY>
 ```
 
-### 4. Deploy Docker containers
-```bash
-cd deployment/docker
-docker-compose up -d
-```
-
-### 5. Install Logstash
+### 4. Install Logstash
 
 See [Logstash Installation Guide](https://www.elastic.co/docs/reference/logstash/installing-logstash)
 
-### 6. Configure Logstash
+### 5. Configure Logstash
 ```bash
 sudo cp configs/logstash/syslog-to-kafka.conf /etc/logstash/conf.d/
 sudo systemctl restart logstash
@@ -120,23 +111,11 @@ sudo systemctl restart logstash
 
 See [Logstash Configuration](docs/logstash-setup.md)
 
-### 7. Deploy Morpheus Pipeline
-```bash
-conda create -n morpheus python=3.10
-conda activate morpheus
-pip install -r requirements.txt
-
-# Run pipeline
-python scripts/morpheus/morpheus_pipeline.py
-```
-
-See [Morpheus Pipeline Guide](docs/morpheus-setup.md)
-
-### 8. Install Wazuh 
+### 6. Install Wazuh 
 
 See [Wazuh Installation Guide](https://documentation.wazuh.com/current/installation-guide/index.html)
 
-### 8. Configure Wazuh Integration
+### 7. Configure Wazuh Integration
 ```bash
 # Copy rules
 sudo cp configs/wazuh/local_rules.xml /var/ossec/etc/rules/
@@ -149,6 +128,12 @@ sudo systemctl restart wazuh-manager
 ```
 
 See [Wazuh Integration Guide](docs/wazuh-integration.md)
+
+### 8. Run Setup Script
+```bash
+chmod +x setup.sh
+./sethup
+```
 
 ## Configuration
 
