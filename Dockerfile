@@ -68,6 +68,7 @@ COPY configs/ /workspace/configs/
 # Let Docker/NVIDIA runtime decide
 # ------------------------------------------------------------------
 ENV KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+ENV LD_LIBRARY_PATH=/opt/conda/envs/morpheus/lib:$LD_LIBRARY_PATH
 
 # ------------------------------------------------------------------
 # Default command
