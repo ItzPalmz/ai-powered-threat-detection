@@ -122,6 +122,7 @@ sudo cp configs/wazuh/local_rules.xml /var/ossec/etc/rules/
 
 # Copy Discord integration
 sudo cp scripts/wazuh/custom-discord /var/ossec/integrations/
+edit your discord_webhook
 
 # Restart Wazuh
 sudo systemctl restart wazuh-manager
