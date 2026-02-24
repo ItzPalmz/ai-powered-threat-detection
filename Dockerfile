@@ -1,26 +1,25 @@
-# ------------------------------------------------------------
-# RTX 5090 Production Image (PyTorch First Architecture)
-# ------------------------------------------------------------
-FROM nvcr.io/nvidia/pytorch:25.06-py3
+# Morpheus AI Threat Detection - Production Dockerfile
+FROM nvcr.io/nvidia/morpheus/morpheus:v25.06.00-runtime
 
 LABEL maintainer="Teetuch Thawinphrai"
-LABEL description="AI-Powered Threat Detection - RTX 5090 Optimized"
-LABEL version="2.0"
+LABEL description="AI-Powered Threat Detection with NVIDIA Morpheus"
+LABEL version="1.0"
 
-# ------------------------------------------------------------
-# Environment
-# ------------------------------------------------------------
+# ------------------------------------------------------------------
+# Environment Setup
+# ------------------------------------------------------------------
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    MORPHEUS_LOG_LEVEL=INFO \
     HF_HOME=/workspace/.cache/huggingface \
     TRANSFORMERS_CACHE=/workspace/.cache/huggingface \
     XDG_CACHE_HOME=/workspace/.cache
 
 WORKDIR /workspace
 
-# ------------------------------------------------------------
-# System utilities
-# ------------------------------------------------------------
+# ------------------------------------------------------------------
+# Install ONLY basic utilities (DO NOT touch CUDA / RAPIDS)
+# ------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         git \
@@ -29,52 +28,48 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# ------------------------------------------------------------
-# Upgrade pip
-# ------------------------------------------------------------
-RUN python -m pip install --upgrade pip setuptools wheel
+# ------------------------------------------------------------------
+# Copy dependency file first (better layer caching)
+# ------------------------------------------------------------------
+COPY requirements.txt .
 
-# ------------------------------------------------------------
-# Install ML + Streaming Dependencies
-# ------------------------------------------------------------
-RUN pip install --no-cache-dir \
-    transformers \
-    accelerate \
-    scikit-learn \
-    scipy \
-    pandas \
-    confluent-kafka \
-    python-dateutil
+# Use Morpheus Python (already GPU-aligned)
+RUN conda run -n morpheus python -m pip install --upgrade pip setuptools wheel
 
-# ------------------------------------------------------------
-# Optional: If RTX 5090 requires nightly torch
-# (Uncomment only if needed)
-# ------------------------------------------------------------
-# RUN pip uninstall -y torch torchvision torchaudio
-# RUN pip install --pre torch torchvision torchaudio \
-#     --index-url https://download.pytorch.org/whl/nightly/cu124
+# Install ONLY pure-python deps
+# (No torch / cudf / cupy here — already provided by base image)
+RUN conda run -n morpheus python -m pip install --no-cache-dir -r requirements.txt
 
-# ------------------------------------------------------------
-# Runtime directories
-# ------------------------------------------------------------
+# ------------------------------------------------------------------
+# Create runtime directories
+# ------------------------------------------------------------------
 RUN mkdir -p \
     /workspace/scripts \
     /workspace/models \
+    /workspace/models/dfp_cache \
     /workspace/configs \
     /workspace/logs \
     /workspace/data \
     /workspace/.cache
 
-# ------------------------------------------------------------
-# Copy application
-# ------------------------------------------------------------
+# Give non-root write access (safer than 777)
+RUN chmod -R 775 /workspace
+
+# ------------------------------------------------------------------
+# Copy application code
+# These can still be overridden by docker-compose volumes
+# ------------------------------------------------------------------
 COPY scripts/ /workspace/scripts/
 COPY models/ /workspace/models/
 COPY configs/ /workspace/configs/
 
+# ------------------------------------------------------------------
+# Runtime Variables (DON'T hardcode GPU index)
+# Let Docker/NVIDIA runtime decide
+# ------------------------------------------------------------------
 ENV KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 
-# ------------------------------------------------------------
+# ------------------------------------------------------------------
 # Default command
-# ------------------------------------------------------------
-CMD ["python", "/workspace/scripts/morpheus/morpheus_pipeline.py"]
+# ------------------------------------------------------------------
+CMD ["python3", "/workspace/scripts/morpheus/morpheus_pipeline.py"]
