@@ -985,7 +985,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
 
         # Stage 2: BERT
         logging.info("Loading BERT classifier on GPU...")
-        model_path = os.getenv('BERT_MODEL_PATH', '/models/bert_fortinet_trained')
+        model_path = "/workspace/models/bert_fortinet_trained"
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model path not found: {model_path}")
 
