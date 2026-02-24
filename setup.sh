@@ -548,7 +548,7 @@ if [ "$WRITER_ENABLED" = true ]; then
         -v "$SCRIPTS_DIR:/workspace/scripts:ro" \
         --restart unless-stopped \
         "$IMAGE_NAME" \
-        python /workspace/scripts/wazuh/llm_to_wazuh.py
+        python /workspace/scripts/wazuh/dashboard_writer.py
     
     print_success "$CONTAINER_NAME started"
 fi
