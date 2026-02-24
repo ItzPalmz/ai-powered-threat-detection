@@ -354,7 +354,7 @@ echo "  Full deployment (4 Morpheus + 2 LLM + 1 Writer)"
 
     MORPHEUS_REPLICAS=4
     LLM_REPLICAS=2
-     WRITER_ENABLED=true
+    WRITER_ENABLED=true
 
 
 # ==================== START CONTAINERS ====================
