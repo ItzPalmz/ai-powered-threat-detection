@@ -350,60 +350,12 @@ docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list
 
 print_header "Step 7: Deployment Configuration"
 
-echo ""
-echo "Choose deployment mode:"
-echo "  1) Full deployment (4 Morpheus + 2 LLM + 1 Writer)"
-echo "  2) Minimal (1 Morpheus + 1 Writer)"
-echo "  3) Docker Compose (use docker-compose.yml)"
-echo "  4) Custom"
-echo ""
-read -p "Enter choice [1-4]: " DEPLOY_MODE
+echo "  Full deployment (4 Morpheus + 2 LLM + 1 Writer)"
 
-case $DEPLOY_MODE in
-    1)
-        MORPHEUS_REPLICAS=4
-        LLM_REPLICAS=2
-        WRITER_ENABLED=true
-        ;;
-    2)
-        MORPHEUS_REPLICAS=1
-        LLM_REPLICAS=0
-        WRITER_ENABLED=true
-        ;;
-    3)
-        # Use docker-compose
-        print_info "Using docker-compose deployment..."
-        
-        if [ ! -f "$REPO_ROOT/docker-compose.yml" ]; then
-            print_error "docker-compose.yml not found in $REPO_ROOT"
-            exit 1
-        fi
-        
-        cd "$REPO_ROOT"
-        $DOCKER_COMPOSE up -d
-        
-        print_success "Deployment started via docker-compose"
-        echo ""
-        echo "View logs: $DOCKER_COMPOSE logs -f"
-        echo "Check status: $DOCKER_COMPOSE ps"
-        exit 0
-        ;;
-    4)
-        read -p "Number of Morpheus pipeline instances [1-8]: " MORPHEUS_REPLICAS
-        read -p "Number of LLM enrichment instances [0-2]: " LLM_REPLICAS
-        read -p "Enable Wazuh writer? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            WRITER_ENABLED=true
-        else
-            WRITER_ENABLED=false
-        fi
-        ;;
-    *)
-        print_error "Invalid choice"
-        exit 1
-        ;;
-esac
+    MORPHEUS_REPLICAS=4
+    LLM_REPLICAS=2
+     WRITER_ENABLED=true
+
 
 # ==================== START CONTAINERS ====================
 
