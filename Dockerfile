@@ -1,5 +1,5 @@
 # Morpheus AI Threat Detection - Production Dockerfile
-FROM nvcr.io/nvidia/morpheus/morpheus:v25.06-runtime
+FROM nvcr.io/nvidia/morpheus/morpheus:v25.06.00-runtime
 
 LABEL maintainer="Teetuch Thawinphrai"
 LABEL description="AI-Powered Threat Detection with NVIDIA Morpheus"
