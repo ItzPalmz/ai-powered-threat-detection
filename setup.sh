@@ -459,12 +459,16 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
     if [ -n "$BERT_MODEL_PATH" ]; then
         VOLUME_ARGS="$VOLUME_ARGS -v $BERT_MODEL_PATH:/models/bert:ro"
     fi
-    
+    if [ "$i" -le 3 ]; then
+        GPU_ID=2
+    else
+        GPU_ID=3
+    fi
     docker run -d \
         --name "$CONTAINER_NAME" \
         --network "$NETWORK_NAME" \
         --gpus all \
-        -e CUDA_VISIBLE_DEVICES=0 \
+        -e CUDA_VISIBLE_DEVICES=$GPU_ID \
         -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
         -e KAFKA_INPUT_TOPIC=sys_logs \
         -e KAFKA_OUTPUT_TOPIC=morpheus-final-realtime-dfp \
@@ -506,7 +510,7 @@ if [ "$LLM_REPLICAS" -gt 0 ]; then
             --name "$CONTAINER_NAME" \
             --network "$NETWORK_NAME" \
             --gpus all \
-            -e CUDA_VISIBLE_DEVICES=0 \
+            -e CUDA_VISIBLE_DEVICES=3 \
             -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
             -e COOLDOWN_SECONDS=600 \
             -e MULTI_LOG_WINDOW=120 \
