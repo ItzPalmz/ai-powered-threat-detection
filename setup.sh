@@ -193,20 +193,7 @@ print_success "Cache directory: $CACHE_DIR"
 print_header "Step 3: Configuring Model Paths"
 
 # BERT Model Path
-if [ -z "$BERT_MODEL_PATH" ]; then
-    echo ""
-    echo -e "${BLUE}Enter path to BERT model directory:${NC}"
-    echo "  This is required for ML-based threat classification"
-    echo "  Example: /home/user/bert_fortinet_trained"
-    echo ""
-    echo "  The directory should contain:"
-    echo "    - config.json"
-    echo "    - model.safetensors (or pytorch_model.bin)"
-    echo "    - tokenizer files"
-    echo ""
-    echo -e "${BLUE}Path (or Enter to skip if testing without BERT):${NC}"
-    read -r BERT_MODEL_PATH
-fi
+BERT_MODEL_PATH="$MODELS_DIR/bert_fortinet_trained"
 
 if [ -n "$BERT_MODEL_PATH" ] && [ -d "$BERT_MODEL_PATH" ]; then
     if [ -f "$BERT_MODEL_PATH/config.json" ]; then
@@ -217,26 +204,6 @@ if [ -n "$BERT_MODEL_PATH" ] && [ -d "$BERT_MODEL_PATH" ]; then
 elif [ -n "$BERT_MODEL_PATH" ]; then
     print_error "BERT model path does not exist: $BERT_MODEL_PATH"
     BERT_MODEL_PATH=""
-fi
-
-# LLM Model Path
-if [ -z "$LLM_MODELS_PATH" ]; then
-    echo ""
-    echo -e "${BLUE}Enter path to LLM models directory (OPTIONAL):${NC}"
-    echo "  ${YELLOW}Note: LLM is disabled by default in the pipeline${NC}"
-    echo "  If you enable it later, models will auto-download from HuggingFace"
-    echo ""
-    echo "  Options:"
-    echo "    1) Press Enter to skip (models download automatically when needed)"
-    echo "    2) Enter local path if you pre-downloaded models"
-    echo "       Example: /home/user/llm-models/mistral-7b"
-    echo ""
-    echo -e "${BLUE}Path (or Enter to skip):${NC}"
-    read -r LLM_MODELS_PATH
-    
-    if [ -z "$LLM_MODELS_PATH" ]; then
-        print_info "LLM models will auto-download from HuggingFace when enabled"
-    fi
 fi
 
 if [ -n "$LLM_MODELS_PATH" ] && [ -d "$LLM_MODELS_PATH" ]; then
