@@ -1,199 +1,181 @@
 #!/usr/bin/env python3
 """
-Kafka LLM Enrichment to Wazuh OpenSearch Consumer
-Consumes from morpheus-llm-enrichment and indexes to Wazuh
+Debug Updater: Tries to find data with wider windows and relaxed field mappings.
 """
+from opensearchpy import OpenSearch
 from confluent_kafka import Consumer
-from opensearchpy import OpenSearch, helpers
 import json
 import logging
-from datetime import datetime
-import sys
-import time
+from datetime import datetime, timedelta
 
-# Configure logging
 logging.basicConfig(
-    level=logging.INFO, 
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
 KAFKA_BROKER = "192.168.19.80:9092"
-KAFKA_TOPIC = "morpheus-llm-enrichment"  
-GROUP_ID = "morpheus-llm-wazuh-indexer"
+KAFKA_TOPIC = "morpheus-llm-enrichment"
+GROUP_ID = "morpheus-llm-updater-debug"
 
-INDEXER_HOST = "192.168.19.80"
-INDEXER_PORT = 9200
-INDEXER_USER = "admin"
-INDEXER_PASS = "HsU4+m88zRiiJ*yI7gbWlBaloHmycLDC"
-INDEX_NAME = "morpheus-llm-alerts"  
+OPENSEARCH_HOST = "192.168.19.80"
+OPENSEARCH_PORT = 9200
+OPENSEARCH_USER = "admin"
+OPENSEARCH_PASS = "HsU4+m88zRiiJ*yI7gbWlBaloHmycLDC"
+MORPHEUS_INDEX = "morpheus-final-realtime-dfp-2"
 
-# ============================================================================
-# TUNING PARAMETERS 
-# ============================================================================
-MAX_BULK_SIZE = 50         # Smaller batches for lower latency
-MAX_FLUSH_INTERVAL = 1.0   # Flush every 1 second max
-POLL_TIMEOUT = 0.1         # Seconds
-
-# Kafka Consumer Performance Tuning
-KAFKA_FETCH_MIN_BYTES = 1  # Process immediately
-KAFKA_FETCH_WAIT_MAX_MS = 100    
+# INCREASED TIME WINDOW for debugging (5 minutes)
+TIME_WINDOW = 300 
 
 # ============================================================================
 # OPENSEARCH CLIENT
 # ============================================================================
 client = OpenSearch(
-    hosts=[{'host': INDEXER_HOST, 'port': INDEXER_PORT}],
-    http_auth=(INDEXER_USER, INDEXER_PASS),
+    hosts=[{'host': OPENSEARCH_HOST, 'port': OPENSEARCH_PORT}],
+    http_auth=(OPENSEARCH_USER, OPENSEARCH_PASS),
     use_ssl=True,
     verify_certs=False,
     ssl_show_warn=False,
-    timeout=30,
-    max_retries=3,
-    retry_on_timeout=True
+    timeout=30
 )
 
-try:
-    info = client.info()
-    logging.info(f"Connected to OpenSearch: {info['version']['number']}")
-except Exception as e:
-    logging.error(f"Failed to connect to OpenSearch: {e}")
-    sys.exit(1)
-
-# ============================================================================
-# KAFKA CONSUMER
-# ============================================================================
-conf = {
+consumer = Consumer({
     "bootstrap.servers": KAFKA_BROKER,
     "group.id": GROUP_ID,
     "auto.offset.reset": "latest",
     "enable.auto.commit": True,
-    "auto.commit.interval.ms": 1000,
-    "fetch.min.bytes": KAFKA_FETCH_MIN_BYTES,
-    "fetch.wait.max.ms": KAFKA_FETCH_WAIT_MAX_MS,
-    "session.timeout.ms": 45000,
-    "max.poll.interval.ms": 600000, 
-    "heartbeat.interval.ms": 3000,
-}
-
-consumer = Consumer(conf)
+})
 consumer.subscribe([KAFKA_TOPIC])
 
-# ============================================================================
-# BULK INDEXING LOGIC
-# ============================================================================
-buffer = []
-last_flush_time = time.time()
-total_indexed = 0
-total_errors = 0
-llm_analyzed = 0
-llm_suspicious = 0
-
-def flush_bulk(actions):
-    global total_indexed, total_errors, last_flush_time
-    if not actions:
-        return
-    
-    try:
-        start_time = time.time()
-        success, errors = helpers.bulk(
-            client, 
-            actions,
-            raise_on_error=False,
-            raise_on_exception=False
-        )
-        
-        elapsed = time.time() - start_time
-        total_indexed += success
-        
-        if errors:
-            total_errors += len(errors)
-            logging.error(f"Bulk error: {errors[0]}")
-        
-        logging.info(
-            f"Indexed {success} docs in {elapsed:.3f}s | "
-            f"Total: {total_indexed} | LLM Analyzed: {llm_analyzed} | Suspicious: {llm_suspicious}"
-        )
-        last_flush_time = time.time()
-        
-    except Exception as e:
-        logging.error(f"Fatal bulk indexing failure: {e}")
-        total_errors += len(actions)
-
-def should_flush(buffer_size):
-    """Trigger flush based on batch size or time elapsed."""
-    if buffer_size >= MAX_BULK_SIZE:
-        return True
-    if (time.time() - last_flush_time) >= MAX_FLUSH_INTERVAL and buffer_size > 0:
-        return True
-    return False
+logging.info(f"DEBUG MODE ACTIVE")
+logging.info(f"Window increased to: {TIME_WINDOW}s (5 mins)")
+logging.info(f"Query mode: Relaxing .keyword checks")
 
 # ============================================================================
-# MAIN CONSUMER LOOP
+# MAIN LOOP
 # ============================================================================
-logging.info("="*70)
-logging.info(f"LLM Enrichment -> Wazuh Indexer Started")
-logging.info(f"   Topic: {KAFKA_TOPIC}")
-logging.info(f"   Index: {INDEX_NAME}")
-logging.info(f"   Max Latency: {MAX_FLUSH_INTERVAL}s")
-logging.info("="*70)
+stats = {
+    'total': 0, 'matched': 0, 'no_match': 0, 'errors': 0
+}
 
 try:
     while True:
-        msg = consumer.poll(POLL_TIMEOUT)
-
-        # 1. Handle Empty Poll / Time-based Flush
-        if msg is None:
-            if should_flush(len(buffer)):
-                flush_bulk(buffer)
-                buffer = []
-            continue
-
-        # 2. Handle Kafka Errors
-        if msg.error():
-            logging.error(f"Kafka error: {msg.error()}")
-            continue
-
-        # 3. Parse Message
+        msg = consumer.poll(1.0)
+        if msg is None: continue
+        if msg.error(): continue
+        
         try:
-            event = json.loads(msg.value().decode('utf-8'))
-        except json.JSONDecodeError as e:
-            logging.error(f"JSON decode failure: {e}")
+            llm_data = json.loads(msg.value().decode('utf-8'))
+        except:
             continue
         
-        # 4. Track LLM stats
-        if event.get('llm_status') == 'analyzed':
-            llm_analyzed += 1
-            if event.get('llm_is_suspicious') == 1:
-                llm_suspicious += 1
+        stats['total'] += 1
         
-        # 5. Enforce @timestamp for Wazuh/OpenSearch
-        if "@timestamp" not in event:
-            event["@timestamp"] = datetime.utcnow().isoformat() + "Z"
+        # Extract fields
+        timestamp = llm_data.get('@timestamp')
+        srcip = llm_data.get('srcip')
+        dstip = llm_data.get('dstip')
+        srcport = llm_data.get('srcport')
+        dstport = llm_data.get('dstport')
         
-        # 6. Add event type marker for Wazuh rules
-        event["event_type"] = "morpheus_llm_enrichment"
-        
-        # 7. Buffer for Bulk
-        buffer.append({
-            "_index": INDEX_NAME,
-            "_source": event
-        })
+        if not all([timestamp, srcip, dstip]):
+            continue
 
-        # 8. Check for Size-based Flush
-        if should_flush(len(buffer)):
-            flush_bulk(buffer)
-            buffer = []
+        # Parse timestamp
+        try:
+            if timestamp.endswith('Z'):
+                ts_dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            else:
+                ts_dt = datetime.fromisoformat(timestamp)
+            
+            # Create wide window
+            t_start = (ts_dt - timedelta(seconds=TIME_WINDOW)).isoformat()
+            t_end = (ts_dt + timedelta(seconds=TIME_WINDOW)).isoformat()
+        except Exception as e:
+            logging.error(f"Time Parse Error: {e}")
+            continue
+        
+        # ============================================================
+        # STRATEGY 1: Try Searching WITHOUT .keyword first
+        # ============================================================
+        # This assumes srcip/dstip are mapped as 'ip' or 'keyword' directly.
+        # If your mapping has 'srcip.keyword', it usually also has 'srcip'.
+        
+        query_filters = [
+            {"term": {"srcip": srcip}},   # Removed .keyword
+            {"term": {"dstip": dstip}},   # Removed .keyword
+            {"range": {"@timestamp": {"gte": t_start, "lte": t_end}}}
+        ]
+        
+        if srcport is not None:
+            query_filters.append({"term": {"srcport": int(srcport)}})
+        if dstport is not None:
+            query_filters.append({"term": {"dstport": int(dstport)}})
+            
+        query = {
+            "query": {"bool": {"must": query_filters}},
+            "size": 1,
+            "sort": [{"@timestamp": "asc"}]
+        }
+        
+        # DEBUG: Print the actual query being sent
+        logging.info(f"DEBUG Query for {srcip} -> {dstip}:\n{json.dumps(query, indent=2)}")
+
+        try:
+            result = client.search(index=MORPHEUS_INDEX, body=query)
+            hits = result['hits']['total']['value']
+            
+            if hits > 0:
+                # Update logic
+                doc = result['hits']['hits'][0]
+                doc_id = doc['_id']
+                update_body = {
+                    "doc": {
+                        "llm_is_suspicious": llm_data.get('llm_is_suspicious'),
+                        "llm_confidence": llm_data.get('llm_confidence'),
+                        "llm_response": llm_data.get('llm_response'),
+                        "llm_trigger": llm_data.get('llm_trigger'),
+                        "llm_matched": True
+                    }
+                }
+                client.update(index=MORPHEUS_INDEX, id=doc_id, body=update_body)
+                stats['matched'] += 1
+                logging.info(f"MATCHED: Updated {doc_id}")
+            else:
+                # ============================================================
+                # STRATEGY 2: If still no match, try WILD CARD searching
+                # ============================================================
+                # This helps if data is there but IPs have different formatting (e.g. spaces)
+                # Only do this for the first 10 errors to avoid spam
+                if stats['no_match'] < 10:
+                    logging.warning(f"Exact match failed. Attempting wildcard search for {srcip}...")
+                    
+                    wildcard_query = {
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    {"wildcard": {"srcip.keyword": f"*{srcip}*"}}, # Force keyword here
+                                    {"wildcard": {"dstip.keyword": f"*{dstip}*"}},
+                                    {"range": {"@timestamp": {"gte": t_start, "lte": t_end}}}
+                                ]
+                            }
+                        },
+                        "size": 1
+                    }
+                    
+                    wc_result = client.search(index=MORPHEUS_INDEX, body=wildcard_query)
+                    wc_hits = wc_result['hits']['total']['value']
+                    logging.info(f"Wildcard Search Result: Found {wc_hits} hits")
+                
+                stats['no_match'] += 1
+                
+        except Exception as e:
+            logging.error(f"Search error: {e}")
+            stats['errors'] += 1
 
 except KeyboardInterrupt:
-    logging.info("Shutting down consumer...")
+    pass
 finally:
-    # Final flush before exit
-    if buffer:
-        logging.info(f"Final flush of {len(buffer)} documents...")
-        flush_bulk(buffer)
-    consumer.close()
-    logging.info(f"Process ended. Success: {total_indexed}, Errors: {total_errors}")
-    sys.exit(0)
+    logging.info(f"Stats: {stats}")
