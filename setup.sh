@@ -172,12 +172,12 @@ for dir in "${REQUIRED_DIRS[@]}"; do
 done
 
 # Check for Python scripts
-if [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline.py" ] || \
+if [ -f "$SCRIPTS_DIR/morpheus/morpheus_dfp_pipeline.py" ] || \
    [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline_official_dfp.py" ]; then
     print_success "Morpheus pipeline scripts found"
 else
     print_warning "Morpheus pipeline scripts not found in $SCRIPTS_DIR/morpheus/"
-    echo "Expected: morpheus_pipeline.py or morpheus_pipeline_official_dfp.py"
+    echo "Expected: morpheus_dfp_pipeline.py or morpheus_pipeline_official_dfp.py"
 fi
 
 # Create cache directory
@@ -192,59 +192,30 @@ print_success "Cache directory: $CACHE_DIR"
 
 print_header "Step 3: Configuring Model Paths"
 
-# BERT Model Path
-if [ -z "$BERT_MODEL_PATH" ]; then
-    echo ""
-    echo -e "${BLUE}Enter path to BERT model directory:${NC}"
-    echo "  This is required for ML-based threat classification"
-    echo "  Example: /home/user/bert_fortinet_trained"
-    echo ""
-    echo "  The directory should contain:"
-    echo "    - config.json"
-    echo "    - model.safetensors (or pytorch_model.bin)"
-    echo "    - tokenizer files"
-    echo ""
-    echo -e "${BLUE}Path (or Enter to skip if testing without BERT):${NC}"
-    read -r BERT_MODEL_PATH
-fi
+# BERT Model Path - hardcoded to repository location
+BERT_MODEL_PATH="$MODELS_DIR/bert_fortinet_trained"
 
-if [ -n "$BERT_MODEL_PATH" ] && [ -d "$BERT_MODEL_PATH" ]; then
+if [ -d "$BERT_MODEL_PATH" ]; then
     if [ -f "$BERT_MODEL_PATH/config.json" ]; then
         print_success "BERT model found: $BERT_MODEL_PATH"
     else
         print_warning "BERT config.json not found in $BERT_MODEL_PATH"
+        print_warning "Pipeline will attempt to run, but BERT classification may fail"
     fi
-elif [ -n "$BERT_MODEL_PATH" ]; then
-    print_error "BERT model path does not exist: $BERT_MODEL_PATH"
-    BERT_MODEL_PATH=""
-fi
-
-# LLM Model Path
-if [ -z "$LLM_MODELS_PATH" ]; then
-    echo ""
-    echo -e "${BLUE}Enter path to LLM models directory (OPTIONAL):${NC}"
-    echo "  ${YELLOW}Note: LLM is disabled by default in the pipeline${NC}"
-    echo "  If you enable it later, models will auto-download from HuggingFace"
-    echo ""
-    echo "  Options:"
-    echo "    1) Press Enter to skip (models download automatically when needed)"
-    echo "    2) Enter local path if you pre-downloaded models"
-    echo "       Example: /home/user/llm-models/mistral-7b"
-    echo ""
-    echo -e "${BLUE}Path (or Enter to skip):${NC}"
-    read -r LLM_MODELS_PATH
-    
-    if [ -z "$LLM_MODELS_PATH" ]; then
-        print_info "LLM models will auto-download from HuggingFace when enabled"
+else
+    print_error "BERT model directory not found: $BERT_MODEL_PATH"
+    print_warning "Expected model location: models/bert_fortinet_trained/"
+    print_warning "Make sure you have the BERT model in your repository"
+    read -p "Continue anyway? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
     fi
 fi
 
-if [ -n "$LLM_MODELS_PATH" ] && [ -d "$LLM_MODELS_PATH" ]; then
-    print_success "LLM models path: $LLM_MODELS_PATH"
-elif [ -n "$LLM_MODELS_PATH" ]; then
-    print_warning "LLM models path does not exist: $LLM_MODELS_PATH"
-    LLM_MODELS_PATH=""
-fi
+# LLM Model Path - optional, will auto-download from HuggingFace if needed
+LLM_MODELS_PATH=""
+print_info "LLM models will auto-download from HuggingFace when enabled"
 
 # ==================== DOCKER IMAGE ====================
 
@@ -362,7 +333,7 @@ fi
 print_info "Creating Kafka topics..."
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 \
     --create --topic sys_logs \
-    --partitions 8 --replication-factor 1 --if-not-exists
+    --partitions 3 --replication-factor 1 --if-not-exists
 
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 \
     --create --topic morpheus-final-realtime-dfp \
@@ -383,60 +354,11 @@ docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list
 
 print_header "Step 7: Deployment Configuration"
 
-echo ""
-echo "Choose deployment mode:"
-echo "  1) Full deployment (4 Morpheus + 2 LLM + 1 Writer)"
-echo "  2) Minimal (1 Morpheus + 1 Writer)"
-echo "  3) Docker Compose (use docker-compose.yml)"
-echo "  4) Custom"
-echo ""
-read -p "Enter choice [1-4]: " DEPLOY_MODE
-
-case $DEPLOY_MODE in
-    1)
-        MORPHEUS_REPLICAS=4
-        LLM_REPLICAS=2
-        WRITER_ENABLED=true
-        ;;
-    2)
-        MORPHEUS_REPLICAS=1
-        LLM_REPLICAS=0
-        WRITER_ENABLED=true
-        ;;
-    3)
-        # Use docker-compose
-        print_info "Using docker-compose deployment..."
-        
-        if [ ! -f "$REPO_ROOT/docker-compose.yml" ]; then
-            print_error "docker-compose.yml not found in $REPO_ROOT"
-            exit 1
-        fi
-        
-        cd "$REPO_ROOT"
-        $DOCKER_COMPOSE up -d
-        
-        print_success "Deployment started via docker-compose"
-        echo ""
-        echo "View logs: $DOCKER_COMPOSE logs -f"
-        echo "Check status: $DOCKER_COMPOSE ps"
-        exit 0
-        ;;
-    4)
-        read -p "Number of Morpheus pipeline instances [1-8]: " MORPHEUS_REPLICAS
-        read -p "Number of LLM enrichment instances [0-2]: " LLM_REPLICAS
-        read -p "Enable Wazuh writer? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            WRITER_ENABLED=true
-        else
-            WRITER_ENABLED=false
-        fi
-        ;;
-    *)
-        print_error "Invalid choice"
-        exit 1
-        ;;
-esac
+# Hardcoded to full deployment
+print_info "Deployment mode: Full (4 Morpheus + 2 LLM + 2 Writers)"
+MORPHEUS_REPLICAS=4
+LLM_REPLICAS=2
+WRITER_ENABLED=true
 
 # ==================== START CONTAINERS ====================
 
@@ -459,16 +381,12 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
     if [ -n "$BERT_MODEL_PATH" ]; then
         VOLUME_ARGS="$VOLUME_ARGS -v $BERT_MODEL_PATH:/models/bert:ro"
     fi
-    if [ "$i" -le 3 ]; then
-        GPU_ID=2
-    else
-        GPU_ID=3
-    fi
+    
     docker run -d \
         --name "$CONTAINER_NAME" \
         --network "$NETWORK_NAME" \
         --gpus all \
-        -e CUDA_VISIBLE_DEVICES=$GPU_ID \
+        -e CUDA_VISIBLE_DEVICES=0 \
         -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
         -e KAFKA_INPUT_TOPIC=sys_logs \
         -e KAFKA_OUTPUT_TOPIC=morpheus-final-realtime-dfp \
@@ -476,7 +394,7 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
         $VOLUME_ARGS \
         --restart unless-stopped \
         "$IMAGE_NAME" \
-        python /workspace/scripts/morpheus/morpheus_pipeline.py
+        python /workspace/scripts/morpheus/morpheus_dfp_pipeline.py
     
     sleep 3
     print_success "$CONTAINER_NAME started"
@@ -510,7 +428,7 @@ if [ "$LLM_REPLICAS" -gt 0 ]; then
             --name "$CONTAINER_NAME" \
             --network "$NETWORK_NAME" \
             --gpus all \
-            -e CUDA_VISIBLE_DEVICES=3 \
+            -e CUDA_VISIBLE_DEVICES=0 \
             -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
             -e COOLDOWN_SECONDS=600 \
             -e MULTI_LOG_WINDOW=120 \
@@ -548,39 +466,11 @@ if [ "$WRITER_ENABLED" = true ]; then
         -v "$SCRIPTS_DIR:/workspace/scripts:ro" \
         --restart unless-stopped \
         "$IMAGE_NAME" \
-        python /workspace/scripts/wazuh/dashboard_writer.py
-    
-    print_success "$CONTAINER_NAME started"
-fi
-
-# Start LLM Mapping 
-if [ "$WRITER_ENABLED" = true ]; then
-    print_header "Starting LLM Mapping"
-    
-    CONTAINER_NAME="morpheus-llm-mapping"
-    
-    if docker ps -a | grep -q "$CONTAINER_NAME"; then
-        print_warning "Removing existing container: $CONTAINER_NAME"
-        docker rm -f "$CONTAINER_NAME"
-    fi
-    
-    print_info "Starting $CONTAINER_NAME..."
-    
-    docker run -d \
-        --name "$CONTAINER_NAME" \
-        --network "$NETWORK_NAME" \
-        -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
-        -e WAZUH_INDEXER_HOST="${WAZUH_INDEXER_HOST:-192.168.19.80}" \
-        -e WAZUH_INDEXER_PORT="${WAZUH_INDEXER_PORT:-9200}" \
-        -e WAZUH_INDEXER_USER="${WAZUH_INDEXER_USER:-admin}" \
-        -e WAZUH_INDEXER_PASSWORD="${WAZUH_INDEXER_PASSWORD}" \
-        -v "$SCRIPTS_DIR:/workspace/scripts:ro" \
-        --restart unless-stopped \
-        "$IMAGE_NAME" \
         python /workspace/scripts/wazuh/llm_to_wazuh.py
     
     print_success "$CONTAINER_NAME started"
 fi
+
 # ==================== VERIFICATION ====================
 
 print_header "Step 9: Deployment Summary"
