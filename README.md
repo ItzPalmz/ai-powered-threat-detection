@@ -132,7 +132,7 @@ See [Wazuh Integration Guide](docs/wazuh-integration.md)
 ### 8. Run Setup Script
 ```bash
 chmod +x setup.sh
-./sethup
+./setup.sh
 ```
 
 ## Configuration
