@@ -172,12 +172,12 @@ for dir in "${REQUIRED_DIRS[@]}"; do
 done
 
 # Check for Python scripts
-if [ -f "$SCRIPTS_DIR/morpheus/morpheus_dfp_pipeline.py" ] || \
+if [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline.py" ] || \
    [ -f "$SCRIPTS_DIR/morpheus/morpheus_pipeline_official_dfp.py" ]; then
     print_success "Morpheus pipeline scripts found"
 else
     print_warning "Morpheus pipeline scripts not found in $SCRIPTS_DIR/morpheus/"
-    echo "Expected: morpheus_dfp_pipeline.py or morpheus_pipeline_official_dfp.py"
+    echo "Expected: morpheus_pipeline.py or morpheus_pipeline_official_dfp.py"
 fi
 
 # Create cache directory
@@ -394,7 +394,7 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
         $VOLUME_ARGS \
         --restart unless-stopped \
         "$IMAGE_NAME" \
-        python /workspace/scripts/morpheus/morpheus_dfp_pipeline.py
+        python /workspace/scripts/morpheus/morpheus_pipeline.py
     
     sleep 3
     print_success "$CONTAINER_NAME started"
