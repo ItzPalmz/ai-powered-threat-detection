@@ -500,6 +500,36 @@ if [ "$WRITER_ENABLED" = true ]; then
     
     print_success "$CONTAINER_NAME started"
 fi
+
+# Start Discord Alerter
+if [ "$WRITER_ENABLED" = true ]; then
+    print_header "Starting Discord Alerter"
+    
+    CONTAINER_NAME="morpheus-discord-alert"
+    
+    if docker ps -a | grep -q "$CONTAINER_NAME"; then
+        print_warning "Removing existing container: $CONTAINER_NAME"
+        docker rm -f "$CONTAINER_NAME"
+    fi
+    
+    print_info "Starting $CONTAINER_NAME..."
+    
+    docker run -d \
+        --name "$CONTAINER_NAME" \
+        --network "$NETWORK_NAME" \
+        -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
+        -e WAZUH_INDEXER_HOST="${WAZUH_INDEXER_HOST:-192.168.19.80}" \
+        -e WAZUH_INDEXER_PORT="${WAZUH_INDEXER_PORT:-9200}" \
+        -e WAZUH_INDEXER_USER="${WAZUH_INDEXER_USER:-admin}" \
+        -e WAZUH_INDEXER_PASSWORD="${WAZUH_INDEXER_PASSWORD}" \
+        -v "$SCRIPTS_DIR:/workspace/scripts:ro" \
+        --restart unless-stopped \
+        "$IMAGE_NAME" \
+        python /workspace/scripts/wazuh/custom-discord.py
+    
+    print_success "$CONTAINER_NAME started"
+fi
+
 # ==================== VERIFICATION ====================
 
 print_header "Step 9: Deployment Summary"
