@@ -68,8 +68,7 @@ Wazuh Dashboard + Discord Alerts
 - NVIDIA GPU (for Morpheus + LLM)
 - CUDA 12.x
 - Docker & Docker Compose
-- Conda/Miniconda
-- Wazuh Server (OpenSearch + Dashboard)
+- Wazuh (OpenSearch + Dashboard)
 
 ## Quick Start
 
