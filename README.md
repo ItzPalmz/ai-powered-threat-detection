@@ -147,7 +147,7 @@ chmod +x setup.sh
 
 | Topic | Partitions | Purpose |
 |-------|-----------|---------|
-| `sys_logs` | 8 | Raw FortiGate logs from Logstash |
+| `sys_logs` | 16 | Raw FortiGate logs from Logstash |
 | `morpheus-final-realtime-dfp` | 3 | Morpheus pipeline output with DFP scores |
 | `morpheus-llm-enrichment` | 1 | LLM-enriched threat analysis |
 
