@@ -376,7 +376,7 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
     VOLUME_ARGS="$VOLUME_ARGS -v $CACHE_DIR:/workspace/models/dfp_cache:rw"
     
     if [ -n "$BERT_MODEL_PATH" ]; then
-        VOLUME_ARGS="$VOLUME_ARGS -v $BERT_MODEL_PATH:/models/bert:ro"
+        VOLUME_ARGS="$VOLUME_ARGS -v $BERT_MODEL_PATH:/workspace/models/bert_fortinet_trained:ro"
     fi
     if [ "$i" -le 3 ]; then
         GPU_ID=2
