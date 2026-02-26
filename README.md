@@ -119,15 +119,9 @@ See [Wazuh Installation Guide](https://documentation.wazuh.com/current/installat
 # Copy rules
 sudo cp configs/wazuh/local_rules.xml /var/ossec/etc/rules/
 
-# Copy Discord integration
-sudo cp scripts/wazuh/custom-discord /var/ossec/integrations/
-edit your discord_webhook
-
 # Restart Wazuh
 sudo systemctl restart wazuh-manager
 ```
-
-See [Wazuh Integration Guide](docs/wazuh-integration.md)
 
 ### 8. Edit custom-discord.py
 ```bash
