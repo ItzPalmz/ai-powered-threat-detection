@@ -130,7 +130,13 @@ sudo systemctl restart wazuh-manager
 
 See [Wazuh Integration Guide](docs/wazuh-integration.md)
 
-### 8. Run Setup Script
+### 8. Edit custom-discord.py
+```bash
+change OPENSEARCH_PASS to your password
+change DISCORD_WEBHOOK to your webhook
+```
+
+### 9. Run Setup Script
 ```bash
 chmod +x setup.sh
 ./setup.sh
