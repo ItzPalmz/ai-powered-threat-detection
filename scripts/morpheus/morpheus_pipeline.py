@@ -1396,7 +1396,7 @@ def build_pipeline():
     pipeline.set_source(KafkaSourceStage(
         config,
         bootstrap_servers="192.168.19.80:9092",
-        input_topic=["sys_logs"],
+        input_topic=["sys-logs"],
         group_id="morpheus-hybrid-dfp-peer-production",
         poll_interval="1millis",
         auto_offset_reset="latest"
