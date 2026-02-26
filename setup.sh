@@ -328,7 +328,7 @@ fi
 # Create Kafka topics
 print_info "Creating Kafka topics..."
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 \
-    --create --topic sys_logs \
+    --create --topic sys-logs \
     --partitions 8 --replication-factor 1 --if-not-exists
 
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 \
