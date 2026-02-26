@@ -161,13 +161,8 @@ rcvdbyte, sentpkt, rcvdpkt, duration, vd, session_id
 
 **Purpose**: Log ingestion and parsing
 
-**Resources**:
-- RAM: 2GB (Java heap)
-- CPU: 4 cores
-- Network: UDP 5514
-
 **Performance**:
-- Throughput: 10,000+ logs/sec
+- Throughput: 150+ logs/sec
 - Latency: <50ms
 - Buffer: 26MB UDP receive buffer
 
@@ -189,36 +184,28 @@ Input → Dissect (parse syslog) → KV (FortiGate) → Date (timestamp) → Out
 
 | Topic | Partitions | Purpose | Volume |
 |-------|-----------|---------|--------|
-| sys_logs | 20 | Raw logs from Logstash | High (100%) |
-| morpheus-final-realtime-dfp | 10 | Morpheus output | High (100%) |
-| morpheus-llm-enrichment | 5 | LLM analyzed | Low (1-3%) |
+| sys_logs | 8 | Raw logs from Logstash | High (100%) |
+| morpheus-final-realtime-dfp | 3 | Morpheus output | High (100%) |
+| morpheus-llm-enrichment | 2 | LLM analyzed | Low (1-3%) |
 
 **Performance**:
 - Throughput: 50,000+ msgs/sec
 - Latency: <10ms
-- Retention: 7 days
 
 ### 4. Morpheus Pipeline
 
 **Purpose**: Multi-stage threat detection
 
-**Resources**:
-- GPU: NVIDIA RTX 3060+ (8GB VRAM)
-- RAM: 16GB
-- CPU: 16+ cores
-
 **Stages**:
 
 #### Stage 1: Regex Detector
 - **Type**: Pattern matching
-- **Speed**: ~100,000 logs/sec
 - **Accuracy**: 95% (known patterns)
 - **False Positives**: <1%
 
 #### Stage 2: DistilBERT Classifier
 - **Type**: ML classification
-- **Model**: DistilBERT fine-tuned on FortiGate logs
-- **Speed**: ~5,000 logs/sec (GPU)
+- **Model**: DistilBERT
 - **Classes**: 12 threat types
 - **Accuracy**: 92%
 
@@ -245,9 +232,8 @@ Input → Dissect (parse syslog) → KV (FortiGate) → Date (timestamp) → Out
 - **Output**: Unique 32-char hex string
 
 **Performance**:
-- Total throughput: 1,000-5,000 logs/sec
+- Total throughput: 250 logs/sec
 - GPU utilization: 40-80%
-- Memory: 6GB GPU + 8GB RAM
 - Latency: 100-500ms per log
 
 ### 5. LLM Enrichment
@@ -256,7 +242,6 @@ Input → Dissect (parse syslog) → KV (FortiGate) → Date (timestamp) → Out
 
 **Model**: Mistral-7B-Instruct-v0.2
 - **Quantization**: 4-bit (INT4)
-- **VRAM**: 4-6GB
 - **Speed**: 0.5-2 seconds per analysis
 
 **Smart Cooldown Logic**:
