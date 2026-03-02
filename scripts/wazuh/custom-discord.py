@@ -6,7 +6,7 @@ from datetime import datetime
 
 # CONFIG
 
-OPENSEARCH_HOST = "https://localhost:9200"
+OPENSEARCH_HOST = "https://192.168.19.80:9200"
 OPENSEARCH_USER = "admin"
 OPENSEARCH_PASS = "password"
 INDEX_NAME = "morpheus-final-realtime-dfp-2"
