@@ -123,7 +123,7 @@ sudo cp configs/wazuh/local_rules.xml /var/ossec/etc/rules/
 sudo systemctl restart wazuh-manager
 ```
 
-### 8. Edit llm_enrichment.py
+### 8. Edit llm-to-wazuh.py
 ```bash
 change OPENSEARCH_PASS to your password
 ```
