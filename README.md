@@ -130,7 +130,7 @@ change OPENSEARCH_PASS to your password
 
 ### 9. Edit dashboard_writer.py
 ```bash
-change OPENSEARCH_PASS to your password
+change INDEXER_PASS to your password
 ```
 
 ### 10. Edit custom-discord.py
