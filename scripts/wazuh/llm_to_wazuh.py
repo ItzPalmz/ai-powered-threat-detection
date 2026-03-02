@@ -23,7 +23,7 @@ GROUP_ID = "morpheus-llm-updater-debug"
 OPENSEARCH_HOST = "192.168.19.80"
 OPENSEARCH_PORT = 9200
 OPENSEARCH_USER = "admin"
-OPENSEARCH_PASS = "HsU4+m88zRiiJ*yI7gbWlBaloHmycLDC"
+OPENSEARCH_PASS = "password"
 MORPHEUS_INDEX = "morpheus-final-realtime-dfp-2"
 
 # INCREASED TIME WINDOW for debugging (5 minutes)
