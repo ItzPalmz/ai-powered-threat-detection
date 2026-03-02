@@ -5,9 +5,8 @@ LABEL maintainer="Teetuch Thawinphrai"
 LABEL description="AI-Powered Threat Detection with NVIDIA Morpheus"
 LABEL version="1.0"
 
-# ------------------------------------------------------------------
 # Environment Setup
-# ------------------------------------------------------------------
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     MORPHEUS_LOG_LEVEL=INFO \
@@ -17,9 +16,8 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /workspace
 
-# ------------------------------------------------------------------
-# Install ONLY basic utilities (DO NOT touch CUDA / RAPIDS)
-# ------------------------------------------------------------------
+# Install basic utilities 
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
         git \
@@ -28,9 +26,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# ------------------------------------------------------------------
 # Copy dependency file first (better layer caching)
-# ------------------------------------------------------------------
+
 COPY requirements.txt .
 
 # Use Morpheus Python (already GPU-aligned)
@@ -40,9 +37,8 @@ RUN conda run -n morpheus python -m pip install --upgrade pip setuptools wheel
 # (No torch / cudf / cupy here — already provided by base image)
 RUN conda run -n morpheus python -m pip install --no-cache-dir -r requirements.txt
 
-# ------------------------------------------------------------------
 # Create runtime directories
-# ------------------------------------------------------------------
+
 RUN mkdir -p \
     /workspace/scripts \
     /workspace/models \
@@ -53,24 +49,21 @@ RUN mkdir -p \
     /workspace/.cache
 
 # Give non-root write access (safer than 777)
+
 RUN chmod -R 775 /workspace
 
-# ------------------------------------------------------------------
 # Copy application code
-# These can still be overridden by docker-compose volumes
-# ------------------------------------------------------------------
+
 COPY scripts/ /workspace/scripts/
 COPY models/ /workspace/models/
 COPY configs/ /workspace/configs/
 
-# ------------------------------------------------------------------
 # Runtime Variables (DON'T hardcode GPU index)
 # Let Docker/NVIDIA runtime decide
-# ------------------------------------------------------------------
+
 ENV KAFKA_BOOTSTRAP_SERVERS=kafka:29092
 ENV LD_LIBRARY_PATH=/opt/conda/envs/morpheus/lib:$LD_LIBRARY_PATH
 
-# ------------------------------------------------------------------
 # Default command
-# ------------------------------------------------------------------
+
 CMD ["python3", "/workspace/scripts/morpheus/morpheus_pipeline.py"]
