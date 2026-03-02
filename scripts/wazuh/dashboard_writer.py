@@ -29,7 +29,7 @@ GROUP_ID = "morpheus-wazuh-indexer"
 INDEXER_HOST = "192.168.19.80"
 INDEXER_PORT = 9200
 INDEXER_USER = "admin"
-INDEXER_PASS = "HsU4+m88zRiiJ*yI7gbWlBaloHmycLDC"
+INDEXER_PASS = "password"
 INDEX_NAME = "morpheus-final-realtime-dfp-2"
 
 # ============================================================================
