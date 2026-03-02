@@ -13,9 +13,8 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-# ============================================================================
 # CONFIGURATION
-# ============================================================================
+
 KAFKA_BROKER = "192.168.19.80:9092"
 KAFKA_TOPIC = "morpheus-llm-enrichment"
 GROUP_ID = "morpheus-llm-updater-debug"
@@ -29,9 +28,8 @@ MORPHEUS_INDEX = "morpheus-final-realtime-dfp-2"
 # INCREASED TIME WINDOW for debugging (5 minutes)
 TIME_WINDOW = 300 
 
-# ============================================================================
 # OPENSEARCH CLIENT
-# ============================================================================
+
 client = OpenSearch(
     hosts=[{'host': OPENSEARCH_HOST, 'port': OPENSEARCH_PORT}],
     http_auth=(OPENSEARCH_USER, OPENSEARCH_PASS),
@@ -53,9 +51,8 @@ logging.info(f"DEBUG MODE ACTIVE")
 logging.info(f"Window increased to: {TIME_WINDOW}s (5 mins)")
 logging.info(f"Query mode: Relaxing .keyword checks")
 
-# ============================================================================
 # MAIN LOOP
-# ============================================================================
+
 stats = {
     'total': 0, 'matched': 0, 'no_match': 0, 'errors': 0
 }
@@ -97,9 +94,7 @@ try:
             logging.error(f"Time Parse Error: {e}")
             continue
         
-        # ============================================================
         # STRATEGY 1: Try Searching WITHOUT .keyword first
-        # ============================================================
         # This assumes srcip/dstip are mapped as 'ip' or 'keyword' directly.
         # If your mapping has 'srcip.keyword', it usually also has 'srcip'.
         
@@ -144,9 +139,8 @@ try:
                 stats['matched'] += 1
                 logging.info(f"MATCHED: Updated {doc_id}")
             else:
-                # ============================================================
+
                 # STRATEGY 2: If still no match, try WILD CARD searching
-                # ============================================================
                 # This helps if data is there but IPs have different formatting (e.g. spaces)
                 # Only do this for the first 10 errors to avoid spam
                 if stats['no_match'] < 10:
