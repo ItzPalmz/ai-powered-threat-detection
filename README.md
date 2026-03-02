@@ -123,13 +123,23 @@ sudo cp configs/wazuh/local_rules.xml /var/ossec/etc/rules/
 sudo systemctl restart wazuh-manager
 ```
 
-### 8. Edit custom-discord.py
+### 8. Edit llm_enrichment.py
+```bash
+change OPENSEARCH_PASS to your password
+```
+
+### 9. Edit dashboard_writer.py
+```bash
+change OPENSEARCH_PASS to your password
+```
+
+### 10. Edit custom-discord.py
 ```bash
 change OPENSEARCH_PASS to your password
 change DISCORD_WEBHOOK to your webhook
 ```
 
-### 9. Run Setup Script
+### 11. Run Setup Script
 ```bash
 chmod +x setup.sh
 ./setup.sh
