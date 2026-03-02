@@ -389,7 +389,7 @@ for i in $(seq 1 "$MORPHEUS_REPLICAS"); do
         --gpus all \
         -e CUDA_VISIBLE_DEVICES=$GPU_ID \
         -e KAFKA_BOOTSTRAP_SERVERS=kafka:29092 \
-        -e KAFKA_INPUT_TOPIC=sys_logs \
+        -e KAFKA_INPUT_TOPIC=sys-logs \
         -e KAFKA_OUTPUT_TOPIC=morpheus-final-realtime-dfp \
         -e MORPHEUS_LOG_LEVEL=INFO \
         $VOLUME_ARGS \
