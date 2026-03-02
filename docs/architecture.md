@@ -47,7 +47,7 @@ The Morpheus AI Threat Detection System is a multi-stage, GPU-accelerated securi
 ┌─────────────────────────────────────────────────────────────────────┐
 │                     KAFKA CLUSTER (Docker)                          │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ Topic: sys_logs (20 partitions)                              │   │
+│  │ Topic: sys-logs (20 partitions)                              │   │
 │  │ Raw FortiGate logs with all fields                           │   │
 │  └────────────────────────┬─────────────────────────────────────┘   │
 │                            │                                        │
@@ -184,7 +184,7 @@ Input → Dissect (parse syslog) → KV (FortiGate) → Date (timestamp) → Out
 
 | Topic | Partitions | Purpose | Volume |
 |-------|-----------|---------|--------|
-| sys_logs | 8 | Raw logs from Logstash | High (100%) |
+| sys-logs | 8 | Raw logs from Logstash | High (100%) |
 | morpheus-final-realtime-dfp | 3 | Morpheus output | High (100%) |
 | morpheus-llm-enrichment | 2 | LLM analyzed | Low (1-3%) |
 
@@ -315,7 +315,7 @@ morpheus-final-realtime-dfp-2
    ├─ Format: <PRI>key=value pairs
    └─ Rate: ~100 logs/sec (baseline)
 
-2. LOGSTASH → KAFKA (sys_logs)
+2. LOGSTASH → KAFKA (sys-logs)
    ├─ Parse syslog priority
    ├─ Extract FortiGate KV pairs
    ├─ Convert timestamp
@@ -494,7 +494,7 @@ In Wazuh:             ~1,500 bytes (same document)
 /var/lib/docker/volumes/
 └── kafka-setup_kafka-data/
     └── _data/
-        ├── sys_logs-0/
+        ├── sys-logs-0/
         │   ├── 00000000000000000000.log (1GB)
         │   ├── 00000000000001000000.log (1GB)
         │   └── ...
