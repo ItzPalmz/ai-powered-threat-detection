@@ -4,9 +4,8 @@ import requests
 from opensearchpy import OpenSearch
 from datetime import datetime
 
-# ========================
 # CONFIG
-# ========================
+
 OPENSEARCH_HOST = "https://localhost:9200"
 OPENSEARCH_USER = "admin"
 OPENSEARCH_PASS = "password"
@@ -15,9 +14,8 @@ INDEX_NAME = "morpheus-final-realtime-dfp-2"
 DISCORD_WEBHOOK = "YOUR_DISCORD_WEBHOOK_URL"
 POLL_INTERVAL = 15  # seconds
 
-# ========================
 # OpenSearch Client
-# ========================
+
 client = OpenSearch(
     hosts=[OPENSEARCH_HOST],
     http_auth=(OPENSEARCH_USER, OPENSEARCH_PASS),
@@ -27,9 +25,8 @@ client = OpenSearch(
 
 seen_ids = set()
 
-# ========================
 # Query: ONLY llm_is_suspicious AND llm_response exists
-# ========================
+
 def poll_latest():
     q = {
         "size": 10,
@@ -48,20 +45,19 @@ def poll_latest():
     r = client.search(index=INDEX_NAME, body=q)
     return r["hits"]["hits"]
 
-# ========================
 # Discord Sender
-# ========================
+
 def send_to_discord(src):
     if src.get("llm_is_suspicious") != 1 or not src.get("llm_response"):
         return
 
-    # --- LLM ---
+    # LLM 
     llm_response   = src.get("llm_response", "No LLM analysis")
     llm_confidence = int(src.get("llm_confidence", 0))
     llm_trigger    = src.get("llm_trigger", "unknown")
     llm_flag       = int(src.get("llm_is_suspicious", 0))
 
-    # --- Network ---
+    # Network 
     srcip   = src.get("srcip", "N/A")
     dstip   = src.get("dstip", "N/A")
     srcport = src.get("srcport", "N/A")
@@ -70,23 +66,23 @@ def send_to_discord(src):
     app     = src.get("app", "N/A")
     action  = src.get("action", "N/A")
 
-    # --- Traffic Stats ---
+    # Traffic Stats 
     sent = int(src.get("sentbyte") or 0)
     recv = int(src.get("rcvdbyte") or 0)
     duration = src.get("duration", "N/A")
 
-    # --- Firewall Policy ---
+    # Firewall Policy 
     policy_id   = src.get("policyid", "N/A")
     policy_name = src.get("policyname", "N/A")
     srcintf     = src.get("srcintf", "N/A")
     dstintf     = src.get("dstintf", "N/A")
 
-    # --- DFP ---
+    # DFP 
     dfp_flag  = int(src.get("dfp_is_anomaly", 0))
     dfp_score = src.get("dfp_score", "N/A")
     threat_class = src.get("threat_class", "N/A")
 
-    # --- Severity ---
+    # Severity 
     severity = "LOW"
     color = 0xFFCC00
     emoji = "💡"
@@ -167,9 +163,8 @@ def send_to_discord(src):
     payload = {"embeds": [embed]}
     requests.post(DISCORD_WEBHOOK, json=payload, timeout=10)
 
-# ========================
 # Main Loop
-# ========================
+
 def main():
     print("Polling OpenSearch index:", INDEX_NAME)
     while True:
