@@ -966,7 +966,7 @@ class MorpheusHybridStage(PassThruTypeMixin, SinglePortStage):
     1. Regex  — fast known-signature matching
     2. BERT   — GPU ML classification
     3. DFP    — individual + peer behavioural anomaly (from previous stage)
-    4. LLM    — DeepSeek-R1 reasoning (disabled in real-time for performance)
+    4. LLM    — Will be sent later to wazuh for enrichment
     """
 
     def __init__(self, c: Config):
