@@ -19,9 +19,8 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
-# ============================================================================
 # CONFIGURATION
-# ============================================================================
+
 KAFKA_BROKER = "192.168.19.80:9092"
 KAFKA_TOPIC = "morpheus-final-realtime-dfp"
 GROUP_ID = "morpheus-wazuh-indexer"
@@ -32,9 +31,8 @@ INDEXER_USER = "admin"
 INDEXER_PASS = "password"
 INDEX_NAME = "morpheus-final-realtime-dfp-2"
 
-# ============================================================================
 # TUNING PARAMETERS 
-# ============================================================================
+
 MAX_BULK_SIZE = 200        # Documents per batch
 MAX_FLUSH_INTERVAL = 0.5   # Seconds
 POLL_TIMEOUT = 0.1         # Seconds
@@ -43,9 +41,8 @@ POLL_TIMEOUT = 0.1         # Seconds
 KAFKA_FETCH_MIN_BYTES = 524288  
 KAFKA_FETCH_WAIT_MAX_MS = 50    
 
-# ============================================================================
 # OPENSEARCH CLIENT
-# ============================================================================
+
 client = OpenSearch(
     hosts=[{'host': INDEXER_HOST, 'port': INDEXER_PORT}],
     http_auth=(INDEXER_USER, INDEXER_PASS),
@@ -64,9 +61,8 @@ except Exception as e:
     logging.error(f"Failed to connect to OpenSearch: {e}")
     sys.exit(1)
 
-# ============================================================================
 # KAFKA CONSUMER
-# ============================================================================
+
 conf = {
     "bootstrap.servers": KAFKA_BROKER,
     "group.id": GROUP_ID,
@@ -83,9 +79,8 @@ conf = {
 consumer = Consumer(conf)
 consumer.subscribe([KAFKA_TOPIC])
 
-# ============================================================================
 # BULK INDEXING LOGIC
-# ============================================================================
+
 buffer = []
 last_flush_time = time.time()
 total_indexed = 0
@@ -128,9 +123,8 @@ def should_flush(buffer_size):
         return True
     return False
 
-# ============================================================================
 # MAIN CONSUMER LOOP
-# ============================================================================
+
 logging.info(f"Starting consumer for topic: {KAFKA_TOPIC}")
 
 try:
