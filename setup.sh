@@ -49,7 +49,7 @@ fi
 
 echo ""
 
-# ==================== CONFIGURATION ====================
+# CONFIGURATION 
 
 # Default values (can be overridden with environment variables)
 KAFKA_HOST="${KAFKA_HOST:-192.168.19.80}"
@@ -67,7 +67,7 @@ CONFIGS_DIR="$REPO_ROOT/configs"
 BERT_MODEL_PATH="${BERT_MODEL_PATH:-}"
 LLM_MODELS_PATH="${LLM_MODELS_PATH:-}"
 
-# ==================== FUNCTIONS ====================
+# FUNCTIONS 
 
 print_header() {
     echo ""
@@ -103,7 +103,7 @@ check_command() {
     fi
 }
 
-# ==================== PREREQUISITE CHECKS ====================
+# PREREQUISITE CHECKS 
 
 print_header "Step 1: Checking Prerequisites"
 
@@ -150,7 +150,7 @@ else
     echo "Install: sudo apt-get install -y nvidia-container-toolkit"
 fi
 
-# ==================== DIRECTORY STRUCTURE ====================
+# DIRECTORY STRUCTURE
 
 print_header "Step 2: Verifying Repository Structure"
 
@@ -188,7 +188,7 @@ if [ ! -d "$CACHE_DIR" ]; then
 fi
 print_success "Cache directory: $CACHE_DIR"
 
-# ==================== EXTERNAL MODEL PATHS ====================
+# EXTERNAL MODEL PATHS 
 
 print_header "Step 3: Configuring Model Paths"
 
@@ -213,7 +213,7 @@ elif [ -n "$LLM_MODELS_PATH" ]; then
     LLM_MODELS_PATH=""
 fi
 
-# ==================== DOCKER IMAGE ====================
+# DOCKER IMAGE 
 
 print_header "Step 4: Building Docker Image"
 
@@ -264,7 +264,7 @@ else
     print_success "Using existing image: $IMAGE_NAME"
 fi
 
-# ==================== DOCKER NETWORK ====================
+# DOCKER NETWORK 
 
 print_header "Step 5: Setting Up Docker Network"
 
@@ -276,7 +276,7 @@ else
     print_success "Network created: $NETWORK_NAME"
 fi
 
-# ==================== KAFKA INFRASTRUCTURE ====================
+# KAFKA INFRASTRUCTURE 
 
 print_header "Step 6: Starting Kafka Infrastructure"
 
@@ -346,7 +346,7 @@ echo ""
 print_info "Available Kafka topics:"
 docker exec kafka kafka-topics --bootstrap-server localhost:9092 --list
 
-# ==================== DEPLOYMENT MODE ====================
+#  DEPLOYMENT MODE 
 
 print_header "Step 7: Deployment Configuration"
 
@@ -357,7 +357,7 @@ echo "  Full deployment (4 Morpheus + 2 LLM + 1 Writer)"
     WRITER_ENABLED=true
 
 
-# ==================== START CONTAINERS ====================
+# START CONTAINERS 
 
 print_header "Step 8: Starting Morpheus Containers"
 
@@ -530,7 +530,7 @@ if [ "$WRITER_ENABLED" = true ]; then
     print_success "$CONTAINER_NAME started"
 fi
 
-# ==================== VERIFICATION ====================
+# VERIFICATION 
 
 print_header "Step 9: Deployment Summary"
 
@@ -549,7 +549,7 @@ echo ""
 print_info "GPU status:"
 nvidia-smi --query-gpu=index,name,utilization.gpu,memory.used --format=csv,noheader 2>/dev/null || echo "nvidia-smi not available"
 
-# ==================== NEXT STEPS ====================
+# NEXT STEPS
 
 print_header "Next Steps"
 
@@ -597,6 +597,6 @@ print_success "Configuration saved to: $CONFIG_FILE"
 
 echo ""
 echo "=========================================="
-echo "Setup Complete! 🎉"
+echo "Setup Complete! "
 echo "=========================================="
 echo ""
