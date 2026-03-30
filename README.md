@@ -2,8 +2,6 @@
 
 A complete AI-powered threat detection pipeline using NVIDIA Morpheus, LLM enrichment, and Wazuh SIEM integration for real-time network security monitoring.
 
-![Architecture](docs/architecture.png)
-
 ## Overview
 
 This system provides:
