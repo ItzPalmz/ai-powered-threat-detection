@@ -17,7 +17,7 @@ This system provides:
 Fortinet Firewall
     ↓ (Syslog UDP 5514)
 Logstash
-    ↓ (Kafka Topic: sys_logs)
+    ↓ (Kafka Topic: sys-logs)
 NVIDIA Morpheus Pipeline
     ├─ Regex Pattern Matching
     ├─ DistilBERT Classification
