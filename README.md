@@ -210,46 +210,6 @@ python examples/test_bruteforce.py
 python examples/generate_traffic.py
 ```
 
-## Repository Structure
-```
-morpheus-threat-detection/
-├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── kafka-setup.md
-│   ├── logstash-setup.md
-│   ├── morpheus-setup.md
-│   ├── llm-enrichment.md
-│   ├── wazuh-integration.md
-│   └── troubleshooting.md
-├── scripts/
-│   ├── morpheus/
-│   │   └── morpheus_pipeline.py
-│   ├── llm/
-│   │   └── llm_enrichment.py
-│   └── wazuh/
-│       ├── llm_to_wazuh.py
-│       └── custom-discord
-├── configs/
-│   ├── logstash/
-│   │   └── syslog-to-kafka.conf
-│   └── wazuh/
-│       ├── local_rules.xml
-│       └── ossec.conf
-├── deployment/
-│   ├── systemd/
-│   │   └── morpheus-llm-indexer.service
-│   └── docker/
-│       └── docker-compose.yml
-├── examples/
-│   ├── test_bruteforce.py
-│   └── generate_traffic.py
-├── tests/
-│   └── test_smoke.py 
-├── requirements-dev.txt
-└── requirements.txt
-```
-
 ## Troubleshooting
 
 ### Kafka Connection Issues
@@ -269,8 +229,6 @@ sudo journalctl -u morpheus-llm-enricher -f
 # Check Wazuh indexer
 sudo journalctl -u morpheus-llm-indexer -f
 ```
-
-See [Troubleshooting Guide](docs/troubleshooting.md)
 
 ## License
 
